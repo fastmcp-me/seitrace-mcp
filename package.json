@@ -1,7 +1,7 @@
 {
-  "name": "seitrace-insights",
-  "version": "1.0",
-  "description": "MCP Server generated from OpenAPI spec for seitrace-insights",
+  "name": "@seitrace/mcp",
+  "version": "0.1.0",
+  "description": "Seitrace Insights MCP",
   "private": true,
   "type": "module",
   "main": "build/index.js",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "prestart": "npm run build",
     "test": "npm run build && jest --runInBand",
-    "test:e2e": "npm run build && node scripts/e2e.mcp.sdk.mjs"
+    "test:e2e": "npm run build && node tests/e2e.mcp.sdk.mjs"
   },
   "engines": {
     "node": ">=20.0.0"

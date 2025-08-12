@@ -15,12 +15,11 @@
     "outDir": "./build",
     "declaration": true,
     "sourceMap": true,
-  "forceConsistentCasingInFileNames": true,
-  "isolatedModules": true
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "src/**/*"
-  ],
+, "tests/e2e.mcp.sdk.ts"  ],
   "exclude": [
     "node_modules",
     "build",

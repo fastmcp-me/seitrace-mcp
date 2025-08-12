@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -12,25 +16,25 @@ async function main() {
   };
   // If a key is provided, wire it for the server child process
   const providedKey =
-    process.env.E2E_API_KEY || process.env.API_KEY_APIKEY || process.env.SEITRACE_API_KEY;
+    process.env.E2E_API_KEY || process.env.SECRET_APIKEY || process.env.SEITRACE_API_KEY;
   if (providedKey) {
-    // Server expects API_KEY_<schemeNameUpper>, with schemeName "apiKey"
-    process.env.API_KEY_APIKEY = providedKey;
+    // Server expects SECRET_<schemeNameUpper>, with schemeName "apiKey"
+    process.env.SECRET_APIKEY = providedKey;
     dbg('API key detected in env; positive-path tests will run');
   }
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const projectRoot = path.resolve(__dirname, '..');
+  const fileName = fileURLToPath(import.meta.url);
+  const dirName = path.dirname(fileName);
+  const projectRoot = path.resolve(dirName, '..');
   const serverBin = path.join(projectRoot, 'build', 'index.js');
 
   const client = new Client({ name: 'e2e-runner', version: '0.0.0' }, { capabilities: {} });
   const childEnv = { ...process.env };
-  if (providedKey) childEnv.API_KEY_APIKEY = providedKey;
+  if (providedKey) childEnv.SECRET_APIKEY = providedKey;
   const transport = new StdioClientTransport({ command: 'node', args: [serverBin], env: childEnv });
   await client.connect(transport);
   try {
     const toolsRes = await client.listTools();
-    dbg('List tools response:', JSON.stringify(toolsRes, null, 2));
+    // dbg('List tools response:', JSON.stringify(toolsRes, null, 2));
     if (!Array.isArray(toolsRes.tools)) throw new Error('tools/list did not return an array');
 
     const names = toolsRes.tools.map((t) => t.name);
@@ -66,12 +70,22 @@ async function main() {
         .map((v) => v.properties?.method?.const || v.allOf?.[0]?.properties?.method?.const)
         .filter(Boolean)
     );
-    if (!methodConsts.has('list_actions') || !methodConsts.has('list_action_schema') || !methodConsts.has('invoke_action')) {
-      throw new Error('Grouped tool schema missing required methods (list_actions, list_action_schema, invoke_action)');
+    if (
+      !methodConsts.has('list_actions') ||
+      !methodConsts.has('list_action_schema') ||
+      !methodConsts.has('invoke_action')
+    ) {
+      throw new Error(
+        'Grouped tool schema missing required methods (list_actions, list_action_schema, invoke_action)'
+      );
     }
     // Description should be lightweight (no actions listed)
     const desc = erc20.description || '';
-    if (/Actions:|get_erc20_token_info|get_erc20_balances|get_erc20_token_transfers|get_erc20_token_holders/i.test(desc)) {
+    if (
+      /Actions:|get_erc20_token_info|get_erc20_balances|get_erc20_token_transfers|get_erc20_token_holders/i.test(
+        desc
+      )
+    ) {
       throw new Error('Tool description should not list actions');
     }
 
