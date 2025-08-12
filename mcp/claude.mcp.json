@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "seitrace": {
+      "command": "npx",
+      "args": ["-y", "@seitrace/mcp"],
+      "env": {
+        "SECRET_APIKEY": "your-api-key-here"
+      }
+    }
+  }
+}
