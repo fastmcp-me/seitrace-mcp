@@ -144,7 +144,7 @@ Add an MCP server entry to config file (e.g., `mcp.json`):
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "seitrace": {
       "command": "npx",
       "args": ["-y", "@seitrace/mcp"],
