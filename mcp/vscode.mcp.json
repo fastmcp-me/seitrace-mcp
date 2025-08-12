@@ -8,7 +8,7 @@
     }
   ],
   "servers": {
-    "Seitrace": {
+    "seitrace-mcp": {
       "type": "stdio",
       "command": "npx",
       "args": ["-y", "@seitrace/mcp"],

@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "seitrace": {
+    "seitrace-mcp": {
       "command": "npx",
       "args": ["-y", "@seitrace/mcp"],
       "env": {
