@@ -28,64 +28,30 @@ export function controllerNameToToolName(controllerName: string): string {
  * - list_actions
  * - list_action_schema (requires action)
  * - invoke_action (requires action + action's schema)
- * Preserves anyOf/oneOf/allOf inside each action's original schema by composing with allOf.
+ * Uses a unified schema with enum for method selection instead of oneOf.
  */
 export function buildGroupedInputSchema(_actions: Record<string, McpToolDefinition>): any {
-  // Keep tools/list lightweight: do not enumerate actions or embed per-action schemas.
-  const listActionsSchema = {
+  return {
     type: 'object',
     properties: {
       method: {
         type: 'string',
-        const: 'list_actions',
-        description: 'List available actions with descriptions',
+        enum: ['list_actions', 'list_action_schema', 'invoke_action'],
+        description: 'The method to execute: list_actions, list_action_schema, or invoke_action',
+      },
+      action: {
+        type: 'string',
+        description: 'Action identifier (required for list_action_schema and invoke_action)',
+      },
+      payload: {
+        type: 'object',
+        description: 'Action-specific input payload (required for invoke_action)',
+        additionalProperties: true,
       },
     },
     required: ['method'],
     additionalProperties: false,
-  };
-
-  const listActionSchemaSchema = {
-    type: 'object',
-    properties: {
-      method: {
-        type: 'string',
-        const: 'list_action_schema',
-        description: 'Get JSON Schema for a specific action',
-      },
-      action: { type: 'string', description: 'Action identifier' },
-      payload: {
-        type: 'object',
-        description: 'Optional payload (not required for listing schema)',
-        additionalProperties: true,
-      },
-    },
-    required: ['method', 'action'],
-    additionalProperties: false,
-  };
-
-  const invokeGenericSchema = {
-    type: 'object',
-    properties: {
-      method: {
-        type: 'string',
-        const: 'invoke_action',
-        description: 'Invoke a specific action with its required arguments',
-      },
-      action: { type: 'string', description: 'Action identifier' },
-      payload: {
-        type: 'object',
-        description: 'Action-specific input payload',
-        additionalProperties: true,
-      },
-    },
-    required: ['method', 'action', 'payload'],
-    additionalProperties: false,
-  };
-
-  return {
-    type: 'object',
-    oneOf: [listActionsSchema, listActionSchemaSchema, invokeGenericSchema],
+    description: 'Unified schema supporting all three method types based on the method property',
   };
 }
 

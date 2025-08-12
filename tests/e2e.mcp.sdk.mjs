@@ -59,21 +59,20 @@ async function main() {
       throw new Error('Legacy flat tool unexpectedly listed');
     }
 
-    // Ensure grouped schema uses oneOf and includes the 3 method variants (no action enumeration)
+    // Ensure grouped schema uses unified approach with enum for methods
     const erc20 = toolsRes.tools.find((t) => t.name === 'erc20');
-    if (!erc20?.inputSchema || !(erc20.inputSchema.oneOf || erc20.inputSchema.anyOf)) {
-      throw new Error('Grouped tool schema is missing oneOf/anyOf composition');
+    if (!erc20?.inputSchema || !erc20.inputSchema.properties?.method) {
+      throw new Error('Grouped tool schema is missing method property');
     }
-    const variants = erc20.inputSchema.oneOf || erc20.inputSchema.anyOf || [];
-    const methodConsts = new Set(
-      variants
-        .map((v) => v.properties?.method?.const || v.allOf?.[0]?.properties?.method?.const)
-        .filter(Boolean)
-    );
+    const methodEnum = erc20.inputSchema.properties.method.enum;
+    if (!Array.isArray(methodEnum)) {
+      throw new Error('Grouped tool schema method property should have enum values');
+    }
+    const methodSet = new Set(methodEnum);
     if (
-      !methodConsts.has('list_actions') ||
-      !methodConsts.has('list_action_schema') ||
-      !methodConsts.has('invoke_action')
+      !methodSet.has('list_actions') ||
+      !methodSet.has('list_action_schema') ||
+      !methodSet.has('invoke_action')
     ) {
       throw new Error(
         'Grouped tool schema missing required methods (list_actions, list_action_schema, invoke_action)'
