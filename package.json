@@ -1,7 +1,6 @@
 {
   "name": "@seitrace/mcp",
-  "version": "0.1.0",
-  "private": false,
+  "version": "0.1.1",
   "description": "Seitrace Insights MCP",
   "type": "module",
   "main": "build/index.js",
@@ -9,6 +8,27 @@
     "build",
     "src"
   ],
+  "keywords": [
+    "seitrace",
+    "mcp-server",
+    "chat",
+    "chatgpt",
+    "mcp"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Cavies <dev@cavies.xyz>",
+  "homepage": "https://seitrace.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Seitrace/seitrace-mcp.git"
+  },
+  "bin": {
+    "seitrace-mcp": "build/index.js"
+  },
   "scripts": {
     "start": "node build/index.js",
     "build": "tsc && chmod 755 build/index.js",

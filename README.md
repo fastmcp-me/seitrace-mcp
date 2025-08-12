@@ -138,23 +138,7 @@ Once connected, the client will call `tools/list`, then drive the 3-step flow fo
 
 ## Use with VSCode variants, Claude Desktop / Cursor 💻
 
-Below are example configurations for popular VSCode MCP-capable extensions. Adjust paths and env as needed.
-
-Add an MCP server entry to config file (e.g., `mcp.json`):
-
-```json
-{
-  "servers": {
-    "seitrace": {
-      "command": "npx",
-      "args": ["-y", "@seitrace/mcp"],
-      "env": {
-        "SECRET_APIKEY": "your-api-key-here"
-      }
-    }
-  }
-}
-```
+See [mcp](./mcp/)
 
 ## Troubleshooting 🛠️
 
