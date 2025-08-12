@@ -2,7 +2,6 @@
   "name": "@seitrace/mcp",
   "version": "0.1.0",
   "description": "Seitrace Insights MCP",
-  "private": true,
   "type": "module",
   "main": "build/index.js",
   "files": [
