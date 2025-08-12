@@ -14,47 +14,19 @@ What MCP provides to end users and assistants:
 - Simple, secure API key handling via environment variables (sent as `x-api-key`).
 - Quick start via npx: `npx -y @seitrace/mcp`.
 
-## Requirements 🔧
+## Use with VSCode variants, Claude Desktop / Cursor 💻
 
-- Node.js 20+
-- A Seitrace Insights API key (optional for discovery, required for most live calls), obtain it [here](https://seitrace.com/insights?chain=pacific-1)
+See [mcp](./mcp/)
 
-## Quick start (npx) ⚡
+## Using with an MCP Client 🤝
 
-If you just want to run the server, use the one‑liner:
+Configure your MCP client to launch the compiled server binary:
 
-```bash
-npx -y @seitrace/mcp
-```
+- Command: `node`
+- Args: `build/index.js`
+- Env (optional): `SECRET_APIKEY`, `API_BASE_URL`
 
-You can set environment variables such as `SECRET_APIKEY` and `API_BASE_URL` in your shell or inline.
-
-## Install 📦
-
-```bash
-npm install
-```
-
-## Configure 🔐
-
-Copy `.env.example` to `.env` and set your values as needed.
-
-Environment variables:
-
-- `API_BASE_URL` (optional) — defaults to `https://seitrace.com/insights`
-- `SECRET_APIKEY` — Seitrace API key; used to set header `x-api-key`
-
-## Build and Run 🏃
-
-```bash
-# Type-check and compile to build/
-npm run build
-
-# Run the MCP server over stdio (used by MCP clients)
-npm start
-```
-
-This server is designed to be launched by an MCP-compatible client (e.g., via a command/args configuration). It communicates over stdio.
+Once connected, the client will call `tools/list`, then drive the 3-step flow for any controller it wants to use.
 
 ## Available tools 🧰
 
@@ -109,6 +81,48 @@ const res = await client.callTool({
 
 The server validates `payload` against the action’s schema and returns a pretty-printed JSON body when applicable.
 
+## Requirements 🔧
+
+- Node.js 20+
+- A Seitrace Insights API key (optional for discovery, required for most live calls), obtain it [here](https://seitrace.com/insights?chain=pacific-1)
+
+## Quick start (npx) ⚡
+
+If you just want to run the server, use the one‑liner:
+
+```bash
+npx -y @seitrace/mcp
+```
+
+You can set environment variables such as `SECRET_APIKEY` and `API_BASE_URL` in your shell or inline.
+
+## Install 📦
+
+```bash
+npm install
+```
+
+## Configure 🔐
+
+Copy `.env.example` to `.env` and set your values as needed.
+
+Environment variables:
+
+- `API_BASE_URL` (optional) — defaults to `https://seitrace.com/insights`
+- `SECRET_APIKEY` — Seitrace API key; used to set header `x-api-key`
+
+## Build and Run 🏃
+
+```bash
+# Type-check and compile to build/
+npm run build
+
+# Run the MCP server over stdio (used by MCP clients)
+npm start
+```
+
+This server is designed to be launched by an MCP-compatible client (e.g., via a command/args configuration). It communicates over stdio.
+
 ## End-to-End Test ✅
 
 Run the E2E to verify the 3-layer flow and (optionally) a live positive-call:
@@ -125,20 +139,6 @@ What it checks:
 - `list_action_schema` returns the expected properties
 - `invoke_action` enforces required `payload` and validates inputs
 - A live call to `native.get_native_token_info_and_statistic` succeeds when a key is set
-
-## Using with an MCP Client 🤝
-
-Configure your MCP client to launch the compiled server binary:
-
-- Command: `node`
-- Args: `build/index.js`
-- Env (optional): `SECRET_APIKEY`, `API_BASE_URL`
-
-Once connected, the client will call `tools/list`, then drive the 3-step flow for any controller it wants to use.
-
-## Use with VSCode variants, Claude Desktop / Cursor 💻
-
-See [mcp](./mcp/)
 
 ## Troubleshooting 🛠️
 
