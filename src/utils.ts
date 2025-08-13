@@ -7,7 +7,7 @@ import NodePath from 'path';
 
 import { endpointDefinitionMap } from './openapi-definition.js';
 import { McpGroupedToolDefinition, McpToolDefinition } from './types.js';
-import { Language } from '@readme/oas-to-snippet/languages';
+import { Language, getSupportedLanguages } from '@readme/oas-to-snippet/languages';
 import { fileURLToPath } from 'url';
 
 /**
@@ -195,3 +195,6 @@ export const generateSnippet = (path: string, language: string) => {
   const { code } = oasToSnippet(apiDefinition, operation, formData, auth, language as Language);
   return code;
 };
+
+// Supported snippet languages
+export const SUPPORTED_SNIPPET_LANGUAGES = Object.keys(getSupportedLanguages());
