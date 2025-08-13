@@ -17,12 +17,6 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*"
-, "tests/e2e.mcp.sdk.ts"  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "**/*.test.ts"
-  ]
+  "include": ["src/**/*", "tests/e2e.mcp.sdk.ts", "api-specs.json"],
+  "exclude": ["node_modules", "build", "**/*.test.ts"]
 }
