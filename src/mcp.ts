@@ -51,7 +51,7 @@ server.setRequestHandler(
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([name, def]) => ({ name, description: (def.description || '').trim() }));
         return {
-          content: [{ type: 'text', text: JSON.stringify({ tool: toolName, actions }, null, 2) }],
+          content: [{ type: 'text', text: JSON.stringify({ tool: toolName, actions }) }],
         };
       }
 
@@ -72,9 +72,7 @@ server.setRequestHandler(
         }
         const schema = grouped.actions[action].inputSchema;
         return {
-          content: [
-            { type: 'text', text: JSON.stringify({ tool: toolName, action, schema }, null, 2) },
-          ],
+          content: [{ type: 'text', text: JSON.stringify({ tool: toolName, action, schema }) }],
         };
       }
 
@@ -425,7 +423,7 @@ export async function executeApiTool(
       response.data !== null
     ) {
       try {
-        responseText = JSON.stringify(response.data, null, 2);
+        responseText = JSON.stringify(response.data);
       } catch (e) {
         responseText = '[Stringify Error]';
       }

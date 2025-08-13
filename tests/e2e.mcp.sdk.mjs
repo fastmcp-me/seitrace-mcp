@@ -34,7 +34,7 @@ async function main() {
   await client.connect(transport);
   try {
     const toolsRes = await client.listTools();
-    // dbg('List tools response:', JSON.stringify(toolsRes, null, 2));
+    // dbg('List tools response:', JSON.stringify(toolsRes));
     if (!Array.isArray(toolsRes.tools)) throw new Error('tools/list did not return an array');
 
     const names = toolsRes.tools.map((t) => t.name);
@@ -93,7 +93,7 @@ async function main() {
       name: 'erc20',
       arguments: { method: 'invoke_action', action: 'get_erc20_token_info', payload: {} },
     });
-    // dbg('Bad validation call result:', JSON.stringify(bad, null, 2));
+    // dbg('Bad validation call result:', JSON.stringify(bad));
     const badText = (bad.content && bad.content[0] && bad.content[0].text) || '';
     if (!/Invalid arguments|Error validating input/i.test(badText)) {
       throw new Error('Expected validation error text when calling erc20 without required args');
@@ -104,7 +104,7 @@ async function main() {
       name: 'erc20',
       arguments: { method: 'list_action_schema', action: 'nonexistent_action' },
     });
-    // dbg('Unknown action call result:', JSON.stringify(unknown, null, 2));
+    // dbg('Unknown action call result:', JSON.stringify(unknown));
     const unknownText = (unknown.content && unknown.content[0] && unknown.content[0].text) || '';
     if (!/Unknown action .* Available actions:/i.test(unknownText)) {
       throw new Error('Expected unknown action error with available actions list');
