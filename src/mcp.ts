@@ -15,6 +15,9 @@ import {
   groupedToolDefinitionMap,
   generateSnippet,
   SUPPORTED_SNIPPET_LANGUAGES,
+  ROOT_TOOL_NAME,
+  buildRootInputSchema,
+  buildRootDescription,
 } from './utils.js';
 import { acquireOAuth2Token } from './auth.js';
 import { API_BASE_URL, SERVER_NAME, SERVER_VERSION } from './constants.js';
@@ -29,13 +32,91 @@ export const server = new Server(
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  // Advertise grouped controller tools to clients (LLM-friendly)
-  const toolsForClient: Tool[] = Array.from(groupedToolDefinitionMap.values()).map((def) => ({
-    name: def.name,
-    description: def.description,
-    inputSchema: def.inputSchema,
-  }));
-  return { tools: toolsForClient };
+  // Advertise exactly five tools representing the resource operations
+  const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
+
+  const listResource: Tool = {
+    name: 'list_resource',
+    description: 'List available resources (e.g., erc20, erc721, native).',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: [],
+      additionalProperties: false,
+      description: 'No arguments required.',
+    },
+  };
+
+  const listResourceActions: Tool = {
+    name: 'list_resource_actions',
+    description: 'List actions for a given resource.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        resource: { type: 'string', enum: resources, description: 'Resource name.' },
+      },
+      required: ['resource'],
+      additionalProperties: false,
+      description: 'Provide the resource name.',
+    },
+  };
+
+  const listResourceActionSchema: Tool = {
+    name: 'list_resource_action_schema',
+    description: 'Get the JSON Schema for a specific resource action.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        resource: { type: 'string', enum: resources },
+        action: { type: 'string' },
+      },
+      required: ['resource', 'action'],
+      additionalProperties: false,
+      description: 'Provide resource and action.',
+    },
+  };
+
+  const invokeResourceAction: Tool = {
+    name: 'invoke_resource_action',
+    description: 'Invoke a resource action with a payload matching its schema.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        resource: { type: 'string', enum: resources },
+        action: { type: 'string' },
+        payload: { type: 'object', additionalProperties: true },
+      },
+      required: ['resource', 'action', 'payload'],
+      additionalProperties: false,
+      description: 'Provide resource, action, and payload object.',
+    },
+  };
+
+  const listResourceActionSnippet: Tool = {
+    name: 'list_resource_action_snippet',
+    description: 'Generate a code snippet for a given resource action in the specified language.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        resource: { type: 'string', enum: resources },
+        action: { type: 'string' },
+        language: { type: 'string', enum: SUPPORTED_SNIPPET_LANGUAGES },
+      },
+      required: ['resource', 'action', 'language'],
+      additionalProperties: false,
+      description: 'Provide resource, action, and target language.',
+    },
+  };
+
+  return {
+    tools: [
+      listResource,
+      listResourceActions,
+      listResourceActionSchema,
+      invokeResourceAction,
+      listResourceActionSnippet,
+    ],
+  };
 });
 
 server.setRequestHandler(
@@ -43,151 +124,199 @@ server.setRequestHandler(
   async (request: CallToolRequest): Promise<CallToolResult> => {
     const { name: toolName, arguments: toolArgs } = request.params;
 
-    // First try grouped tools (preferred)
-    const grouped = groupedToolDefinitionMap.get(toolName);
-    if (grouped) {
-      // 3-layer method flow
-      const argObj =
-        typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
-      const method = argObj.method || (argObj.action ? 'invoke_action' : undefined);
-
-      if (method === 'list_actions') {
-        const actions = Object.entries(grouped.actions)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([name, def]) => ({ name, description: (def.description || '').trim() }));
-        return {
-          content: [{ type: 'text', text: JSON.stringify({ tool: toolName, actions }) }],
-        };
-      }
-
-      if (method === 'list_action_schema') {
-        const action = argObj.action;
-        if (typeof action !== 'string' || !grouped.actions[action]) {
-          const available = Object.keys(grouped.actions).sort();
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Unknown action '${action}' for tool '${toolName}'. Available actions: ${available.join(
-                  ', '
-                )}`,
-              },
-            ],
-          };
-        }
-        const schema = grouped.actions[action].inputSchema;
-        return {
-          content: [{ type: 'text', text: JSON.stringify({ tool: toolName, action, schema }) }],
-        };
-      }
-
-      if (method === 'invoke_action') {
-        const action = argObj.action;
-        if (typeof action !== 'string' || !grouped.actions[action]) {
-          const available = Object.keys(grouped.actions).sort();
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Unknown action '${action}' for tool '${toolName}'. Available actions: ${available.join(
-                  ', '
-                )}`,
-              },
-            ],
-          };
-        }
-        // Expect payload object carrying the action arguments
-        const payload = argObj.payload;
-        if (
-          payload === undefined ||
-          payload === null ||
-          typeof payload !== 'object' ||
-          Array.isArray(payload)
-        ) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Invalid or missing 'payload' for method 'invoke_action'. Provide an object matching the action schema.`,
-              },
-            ],
-          };
-        }
-        const endpointDef = grouped.actions[action];
-        return await executeApiTool(
-          `${toolName}.${action}`,
-          endpointDef,
-          payload as Record<string, any>,
-          securitySchemes
-        );
-      }
-
-      if (method === 'get_action_snippet') {
-        const action = argObj.action;
-        const language = argObj.language;
-        if (typeof action !== 'string' || !grouped.actions[action]) {
-          const available = Object.keys(grouped.actions).sort();
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Unknown action '${action}' for tool '${toolName}'. Available actions: ${available.join(', ')}`,
-              },
-            ],
-          };
-        }
-        if (typeof language !== 'string' || !SUPPORTED_SNIPPET_LANGUAGES.includes(language)) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(', ')}`,
-              },
-            ],
-          };
-        }
-        const endpointDef = grouped.actions[action];
-        // Use pathTemplate as the OpenAPI path for snippet generation
-        const path = endpointDef.pathTemplate;
-        try {
-          const snippet = generateSnippet(path, language);
-          return {
-            content: [
-              { type: 'text', text: JSON.stringify({ tool: toolName, action, language, snippet }) },
-            ],
-          };
-        } catch (e: any) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Failed to generate snippet for ${toolName}.${action} in '${language}': ${e?.message || String(
-                  e
-                )}`,
-              },
-            ],
-          };
-        }
-      }
-
-      // Unknown method
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Unknown method '${method}'. Use one of: list_actions, list_action_schema, invoke_action, get_action_snippet`,
-          },
-        ],
-      };
+    // Five-tool resource interface
+    if (toolName === 'list_resource') {
+      const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
+      return { content: [{ type: 'text', text: JSON.stringify({ resources }) }] };
     }
 
-    // Fallback: allow legacy flat tool names for compatibility
-    const legacyToolDef = endpointDefinitionMap.get(toolName);
-    if (legacyToolDef) {
-      console.warn(
-        `Calling legacy flat tool '${toolName}'. Consider using grouped controller tools.`
-      );
-      return await executeApiTool(toolName, legacyToolDef, toolArgs ?? {}, securitySchemes);
+    if (toolName === 'list_resource_actions') {
+      const argObj =
+        typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
+      const resource: string | undefined = argObj.resource;
+      if (!resource || !groupedToolDefinitionMap.has(resource)) {
+        const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown or missing resource '${resource}'. Available resources: ${resources.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      const grouped = groupedToolDefinitionMap.get(resource)!;
+      const actions = Object.entries(grouped.actions)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([name, def]) => ({ name, description: (def.description || '').trim() }));
+      return { content: [{ type: 'text', text: JSON.stringify({ resource, actions }) }] };
+    }
+
+    if (toolName === 'list_resource_action_schema') {
+      const argObj =
+        typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
+      const resource: string | undefined = argObj.resource;
+      const action: string | undefined = argObj.action;
+      if (!resource || !groupedToolDefinitionMap.has(resource)) {
+        const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown or missing resource '${resource}'. Available resources: ${resources.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      if (!action) {
+        return { content: [{ type: 'text', text: `Missing action for resource '${resource}'.` }] };
+      }
+      const grouped = groupedToolDefinitionMap.get(resource)!;
+      if (!grouped.actions[action]) {
+        const available = Object.keys(grouped.actions).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown action '${action}' for resource '${resource}'. Available actions: ${available.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      const schema = grouped.actions[action].inputSchema;
+      return { content: [{ type: 'text', text: JSON.stringify({ resource, action, schema }) }] };
+    }
+
+    if (toolName === 'invoke_resource_action') {
+      const argObj =
+        typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
+      const resource: string | undefined = argObj.resource;
+      const action: string | undefined = argObj.action;
+      const payload = argObj.payload;
+      if (!resource || !groupedToolDefinitionMap.has(resource)) {
+        const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown or missing resource '${resource}'. Available resources: ${resources.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      if (!action) {
+        return { content: [{ type: 'text', text: `Missing action for resource '${resource}'.` }] };
+      }
+      const grouped = groupedToolDefinitionMap.get(resource)!;
+      const endpointDef = grouped.actions[action];
+      if (!endpointDef) {
+        const available = Object.keys(grouped.actions).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown action '${action}' for resource '${resource}'. Available actions: ${available.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      if (
+        payload === undefined ||
+        payload === null ||
+        typeof payload !== 'object' ||
+        Array.isArray(payload)
+      ) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Invalid or missing 'payload' for tool 'invoke_resource_action'. Provide an object matching the action schema.`,
+            },
+          ],
+        };
+      }
+      return await executeApiTool(`${resource}.${action}`, endpointDef, payload, securitySchemes);
+    }
+
+    if (toolName === 'list_resource_action_snippet') {
+      const argObj =
+        typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
+      const resource: string | undefined = argObj.resource;
+      const action: string | undefined = argObj.action;
+      const language: string | undefined = argObj.language;
+      if (!resource || !groupedToolDefinitionMap.has(resource)) {
+        const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown or missing resource '${resource}'. Available resources: ${resources.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      if (!action) {
+        return { content: [{ type: 'text', text: `Missing action for resource '${resource}'.` }] };
+      }
+      const grouped = groupedToolDefinitionMap.get(resource)!;
+      const endpointDef = grouped.actions[action];
+      if (!endpointDef) {
+        const available = Object.keys(grouped.actions).sort();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unknown action '${action}' for resource '${resource}'. Available actions: ${available.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      if (typeof language !== 'string' || !SUPPORTED_SNIPPET_LANGUAGES.includes(language)) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(
+                ', '
+              )}`,
+            },
+          ],
+        };
+      }
+      const path = endpointDef.pathTemplate;
+      try {
+        const snippet = generateSnippet(path, language);
+        return {
+          content: [
+            { type: 'text', text: JSON.stringify({ resource, action, language, snippet }) },
+          ],
+        };
+      } catch (e: any) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Failed to generate snippet for ${resource}.${action} in '${language}': ${
+                e?.message || String(e)
+              }`,
+            },
+          ],
+        };
+      }
     }
 
     console.error(`Error: Unknown tool requested: ${toolName}`);

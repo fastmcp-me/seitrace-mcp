@@ -149,6 +149,72 @@ export const groupedToolDefinitionMap: Map<string, McpGroupedToolDefinition> = (
 })();
 
 /**
+ * Root tool name for resource-based interface
+ */
+export const ROOT_TOOL_NAME = 'seitrace';
+
+/**
+ * Build the root tool input schema for resource-based methods.
+ * This unifies discovery and invocation across all resources.
+ */
+export function buildRootInputSchema(resources: string[]): any {
+  return {
+    type: 'object',
+    properties: {
+      method: {
+        type: 'string',
+        enum: [
+          'list_resource',
+          'list_resource_actions',
+          'list_resource_action_schema',
+          'invoke_resource_action',
+          'list_resource_action_snippet',
+        ],
+        description:
+          'The method to execute: list_resource, list_resource_actions, list_resource_action_schema, invoke_resource_action, or list_resource_action_snippet',
+      },
+      resource: {
+        type: 'string',
+        enum: resources,
+        description: 'Resource identifier (e.g., erc20, erc721). Required for resource_* methods.'
+      },
+      action: {
+        type: 'string',
+        description: 'Action identifier within the selected resource.'
+      },
+      payload: {
+        type: 'object',
+        description: 'Action-specific input payload (required for invoke_resource_action)',
+        additionalProperties: true,
+      },
+      language: {
+        type: 'string',
+        enum: SUPPORTED_SNIPPET_LANGUAGES,
+        description:
+          'Target language for list_resource_action_snippet. Supported: ' +
+          SUPPORTED_SNIPPET_LANGUAGES.join(', '),
+      },
+    },
+    required: ['method'],
+    additionalProperties: false,
+    description:
+      'Unified schema supporting resource discovery and action invocation based on the method property',
+  };
+}
+
+/**
+ * Build a concise, LLM-friendly description for the root tool
+ */
+export function buildRootDescription(): string {
+  return [
+    'Seitrace Insights Root Tool',
+    'Methods: list_resource, list_resource_actions(resource), list_resource_action_schema(resource), invoke_resource_action(resource), list_resource_action_snippet(resource)',
+    'Workflow: list_resource -> list_resource_actions(resource) -> list_resource_action_schema(resource, action) -> invoke_resource_action(resource, action, payload)',
+    'Use list_resource to enumerate available resources.',
+  ].join('\n');
+}
+
+/**
  * The function to generate code snippets from the API specifications
  * @param path The API endpoint path
  * @param language The programming language for the snippet

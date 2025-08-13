@@ -1,6 +1,6 @@
 # Seitrace Insights MCP Server 🚀
 
-A Model Context Protocol (MCP) server that exposes the Seitrace Insights API as model-friendly tools. It groups endpoints by controller (e.g., `erc20`, `native`) and uses a compact, three-step method flow so LLMs can reliably discover actions, fetch schemas, and invoke them.
+A Model Context Protocol (MCP) server that exposes the Seitrace Insights API as model-friendly tools. It now advertises five focused tools that implement a resource-based interface so LLMs can discover resources, list actions, fetch schemas, invoke them, and generate code snippets. Grouped tools (e.g., `erc20`, `native`) remain available for compatibility but are not listed.
 
 ## Highlights ✨
 
@@ -26,11 +26,22 @@ Configure your MCP client to launch the compiled server binary:
 - Args: `build/index.js`
 - Env (optional): `SECRET_APIKEY`, `API_BASE_URL`
 
-Once connected, the client will call `tools/list`, then drive the 3-step flow for any controller it wants to use.
+Once connected, the client will call `tools/list`, which returns exactly five tools representing the resource interface.
 
 ## Available tools 🧰
 
-The server exposes the following controller tools. Each tool supports three methods: `list_actions`, `list_action_schema`, and `invoke_action`.
+Primary entrypoint: five tools that form the resource-based interface:
+
+- `list_resource` — list available resources
+- `list_resource_actions` — list actions for a resource
+- `list_resource_action_schema` — get the JSON Schema for an action
+- `invoke_resource_action` — invoke an action with payload
+- `list_resource_action_snippet` — generate a code snippet for an action
+
+- Methods: `list_resource`, `list_resource_actions`, `list_resource_action_schema`, `invoke_resource_action`, `list_resource_action_snippet`.
+- Flow: list resources -> list actions for a resource -> get action schema -> invoke action or generate a code snippet.
+
+Common resources include:
 
 - `address` — address detail, transactions, and token transfers.
 - `erc20` — ERC‑20 token information, balances, transfers, and holders.
@@ -42,41 +53,32 @@ The server exposes the following controller tools. Each tool supports three meth
 - `native` — native token information and statistics.
 - `smart_contract` — smart contract detail.
 
-Method contract (applies to every tool):
-
-- `method`: one of `list_actions`, `list_action_schema`, `invoke_action`
-- `action`: required for `list_action_schema` and `invoke_action`
-- `payload`: required for `invoke_action`; must match the action’s JSON Schema
+Compatibility note: grouped controller tools still work if explicitly invoked by name for legacy clients, but they are not listed in `tools/list`.
 
 ## Typical Flow 🔁
 
-Using the MCP SDK, drive the 3-step flow via `callTool({ name, arguments })`:
+Using the MCP SDK, drive the resource-based flow via the five tools:
 
 ```js
-// 1) Discover actions for a controller (e.g., "erc20")
-const list = await client.callTool({
-  name: 'erc20',
-  arguments: { method: 'list_actions' },
-});
-// list.content[0].text -> JSON string: { tool, actions: [{ name, description }, ...] }
+// 1) Discover available resources
+const resources = await client.callTool({ name: 'list_resource', arguments: {} });
+// -> { resources: ['erc20', 'erc721', 'native', ...] }
 
-// 2) Get the JSON Schema for a specific action
-const schema = await client.callTool({
-  name: 'erc20',
-  arguments: { method: 'list_action_schema', action: 'get_erc20_token_info' },
-});
-// schema.content[0].text -> JSON string: { tool, action, schema }
+// 2) List actions for a resource
+const actions = await client.callTool({ name: 'list_resource_actions', arguments: { resource: 'erc20' } });
+// -> { resource: 'erc20', actions: [{ name, description }, ...] }
 
-// 3) Invoke the action with its payload
-const res = await client.callTool({
-  name: 'erc20',
-  arguments: {
-    method: 'invoke_action',
-    action: 'get_erc20_token_info',
-    payload: { chain_id: 'pacific-1', contract_address: '0x...' },
-  },
-});
+// 3) Get the JSON Schema for a specific action
+const schema = await client.callTool({ name: 'list_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
+// -> { resource: 'erc20', action: 'get_erc20_token_info', schema }
+
+// 4) Invoke the action with its payload
+const res = await client.callTool({ name: 'invoke_resource_action', arguments: { resource: 'erc20', action: 'get_erc20_token_info', payload: { chain_id: 'pacific-1', contract_address: '0x...' } } });
 // res.content[0].text -> "API Response (Status: 200):\n{ ... }"
+
+// 5) Optionally, generate a code snippet for an action
+const snippet = await client.callTool({ name: 'list_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
+// -> { resource, action, language, snippet }
 ```
 
 The server validates `payload` against the action’s schema and returns a pretty-printed JSON body when applicable.
@@ -125,7 +127,7 @@ This server is designed to be launched by an MCP-compatible client (e.g., via a 
 
 ## End-to-End Test ✅
 
-Run the E2E to verify the 3-layer flow and (optionally) a live positive-call:
+Run the E2E to verify the root resource flow and (optionally) a live positive-call:
 
 ```bash
 # Optionally provide your API key so the positive path runs
@@ -134,11 +136,12 @@ SEITRACE_API_KEY=your_key_here npm run test:e2e
 
 What it checks:
 
-- tools/list returns grouped controllers and a compact schema
-- `list_actions` enumerates names and descriptions
-- `list_action_schema` returns the expected properties
-- `invoke_action` enforces required `payload` and validates inputs
-- A live call to `native.get_native_token_info_and_statistic` succeeds when a key is set
+- tools/list only includes the `seitrace` root tool with a compact schema
+- `list_resource` returns available resources
+- `list_resource_actions` enumerates names and descriptions
+- `list_resource_action_schema` returns expected properties
+- `invoke_resource_action` validates input and returns live results when API key is set
+- Snippet generation via `list_resource_action_snippet`
 
 ## Troubleshooting 🛠️
 
@@ -150,8 +153,8 @@ What it checks:
 
 ## Contributing 🤝
 
-- Keep `tools/list` output compact. Do not embed per-action details there—fetch them via `list_action_schema`.
-- New endpoints should be grouped under the appropriate controller tool and follow the `method/action/payload` contract.
+- Keep `tools/list` output compact. Do not embed per-action details there—fetch them via `list_resource_action_schema`.
+- New endpoints should appear under the correct resource; root tool methods should provide discovery and invocation consistently.
 - Prefer small, focused modules in `src/lib/` for shared logic.
 
 ## License 📄
