@@ -10,7 +10,12 @@ import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
 import { JsonObject, McpToolDefinition } from './types.js';
-import { getZodSchemaFromJsonSchema, groupedToolDefinitionMap } from './utils.js';
+import {
+  getZodSchemaFromJsonSchema,
+  groupedToolDefinitionMap,
+  generateSnippet,
+  SUPPORTED_SNIPPET_LANGUAGES,
+} from './utils.js';
 import { acquireOAuth2Token } from './auth.js';
 import { API_BASE_URL, SERVER_NAME, SERVER_VERSION } from './constants.js';
 import { endpointDefinitionMap, securitySchemes } from './openapi-definition.js';
@@ -117,12 +122,60 @@ server.setRequestHandler(
         );
       }
 
+      if (method === 'get_action_snippet') {
+        const action = argObj.action;
+        const language = argObj.language;
+        if (typeof action !== 'string' || !grouped.actions[action]) {
+          const available = Object.keys(grouped.actions).sort();
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Unknown action '${action}' for tool '${toolName}'. Available actions: ${available.join(', ')}`,
+              },
+            ],
+          };
+        }
+        if (typeof language !== 'string' || !SUPPORTED_SNIPPET_LANGUAGES.includes(language)) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(', ')}`,
+              },
+            ],
+          };
+        }
+        const endpointDef = grouped.actions[action];
+        // Use pathTemplate as the OpenAPI path for snippet generation
+        const path = endpointDef.pathTemplate;
+        try {
+          const snippet = generateSnippet(path, language);
+          return {
+            content: [
+              { type: 'text', text: JSON.stringify({ tool: toolName, action, language, snippet }) },
+            ],
+          };
+        } catch (e: any) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Failed to generate snippet for ${toolName}.${action} in '${language}': ${e?.message || String(
+                  e
+                )}`,
+              },
+            ],
+          };
+        }
+      }
+
       // Unknown method
       return {
         content: [
           {
             type: 'text',
-            text: `Unknown method '${method}'. Use one of: list_actions, list_action_schema, invoke_action`,
+            text: `Unknown method '${method}'. Use one of: list_actions, list_action_schema, invoke_action, get_action_snippet`,
           },
         ],
       };

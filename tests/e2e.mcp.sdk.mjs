@@ -72,11 +72,17 @@ async function main() {
     if (
       !methodSet.has('list_actions') ||
       !methodSet.has('list_action_schema') ||
-      !methodSet.has('invoke_action')
+      !methodSet.has('invoke_action') ||
+      !methodSet.has('get_action_snippet')
     ) {
       throw new Error(
-        'Grouped tool schema missing required methods (list_actions, list_action_schema, invoke_action)'
+        'Grouped tool schema missing required methods (list_actions, list_action_schema, invoke_action, get_action_snippet)'
       );
+    }
+    // Ensure language enum surfaced
+    const langEnum = erc20.inputSchema.properties?.language?.enum;
+    if (!Array.isArray(langEnum) || !langEnum.length) {
+      throw new Error('Grouped tool schema missing language enum for get_action_snippet');
     }
     // Description should be lightweight (no actions listed)
     const desc = erc20.description || '';
@@ -139,6 +145,38 @@ async function main() {
       throw new Error(
         'list_action_schema did not return expected properties for erc20.get_erc20_token_info'
       );
+    }
+
+    // 5) get_action_snippet returns a code snippet for a known action and language
+    const snippetRes = await client.callTool({
+      name: 'erc20',
+      arguments: { method: 'get_action_snippet', action: 'get_erc20_token_info', language: 'node' },
+    });
+    const snippetText =
+      (snippetRes.content && snippetRes.content[0] && snippetRes.content[0].text) || '';
+    let snippetParsed;
+    try {
+      snippetParsed = JSON.parse(snippetText);
+      dbg('get_action_snippet result:', JSON.stringify(snippetParsed, null, 2));
+    } catch {
+      throw new Error('get_action_snippet did not return JSON payload');
+    }
+    if (!snippetParsed?.snippet || typeof snippetParsed.snippet !== 'string') {
+      throw new Error('get_action_snippet missing snippet string');
+    }
+
+    // 6) get_action_snippet with unsupported language should error
+    const badLang = await client.callTool({
+      name: 'erc20',
+      arguments: {
+        method: 'get_action_snippet',
+        action: 'get_erc20_token_info',
+        language: 'madeup',
+      },
+    });
+    const badLangText = (badLang.content && badLang.content[0] && badLang.content[0].text) || '';
+    if (!/Unsupported or missing language/i.test(badLangText)) {
+      throw new Error('Expected unsupported language error from get_action_snippet');
     }
 
     // Optional: Positive-path live call if API key available

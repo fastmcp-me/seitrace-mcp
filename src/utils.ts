@@ -10,6 +10,9 @@ import { McpGroupedToolDefinition, McpToolDefinition } from './types.js';
 import { Language, getSupportedLanguages } from '@readme/oas-to-snippet/languages';
 import { fileURLToPath } from 'url';
 
+// Supported snippet languages (explicit list used in schema and validation)
+export const SUPPORTED_SNIPPET_LANGUAGES = Object.keys(getSupportedLanguages());
+
 /**
  * Utility: convert CamelCase or mixedCase to snake_case
  */
@@ -42,17 +45,26 @@ export function buildGroupedInputSchema(_actions: Record<string, McpToolDefiniti
     properties: {
       method: {
         type: 'string',
-        enum: ['list_actions', 'list_action_schema', 'invoke_action'],
-        description: 'The method to execute: list_actions, list_action_schema, or invoke_action',
+        enum: ['list_actions', 'list_action_schema', 'invoke_action', 'get_action_snippet'],
+        description:
+          'The method to execute: list_actions, list_action_schema, invoke_action, or get_action_snippet',
       },
       action: {
         type: 'string',
-        description: 'Action identifier (required for list_action_schema and invoke_action)',
+        description:
+          'Action identifier (required for list_action_schema, invoke_action, and get_action_snippet)',
       },
       payload: {
         type: 'object',
         description: 'Action-specific input payload (required for invoke_action)',
         additionalProperties: true,
+      },
+      language: {
+        type: 'string',
+        enum: SUPPORTED_SNIPPET_LANGUAGES,
+        description:
+          'Target language for get_action_snippet. Supported: ' +
+          SUPPORTED_SNIPPET_LANGUAGES.join(', '),
       },
     },
     required: ['method'],
@@ -70,7 +82,7 @@ export function buildGroupedDescription(
 ): string {
   return [
     `Controller: ${controllerDisplay}`,
-    `Methods: list_actions, list_action_schema, invoke_action`,
+  `Methods: list_actions, list_action_schema, invoke_action, get_action_snippet`,
     `Workflow: list_actions -> list_action_schema(action) -> invoke_action(action, ...)`,
     `Use list_actions to enumerate available actions.`,
   ].join('\n');
@@ -187,7 +199,7 @@ export const generateSnippet = (path: string, language: string) => {
 
   // Prepare security headers
   const auth = Object.keys(operation.schema.security?.[0] || {}).reduce((accum, key) => {
-    accum[key] = Math.random().toString(36).substring(2, 15); // Example value
+    accum[key] = "<should-insert-seitrace-api-key-here>"
     return accum;
   }, {} as Record<string, any>);
 
@@ -195,6 +207,4 @@ export const generateSnippet = (path: string, language: string) => {
   const { code } = oasToSnippet(apiDefinition, operation, formData, auth, language as Language);
   return code;
 };
-
-// Supported snippet languages
-export const SUPPORTED_SNIPPET_LANGUAGES = Object.keys(getSupportedLanguages());
+ 
