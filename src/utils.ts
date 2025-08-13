@@ -164,14 +164,14 @@ export function buildRootInputSchema(resources: string[]): any {
       method: {
         type: 'string',
         enum: [
-          'list_resource',
+          'list_resources',
           'list_resource_actions',
           'list_resource_action_schema',
           'invoke_resource_action',
           'list_resource_action_snippet',
         ],
         description:
-          'The method to execute: list_resource, list_resource_actions, list_resource_action_schema, invoke_resource_action, or list_resource_action_snippet',
+          'The method to execute: list_resources, list_resource_actions, list_resource_action_schema, invoke_resource_action, or list_resource_action_snippet',
       },
       resource: {
         type: 'string',
@@ -208,9 +208,9 @@ export function buildRootInputSchema(resources: string[]): any {
 export function buildRootDescription(): string {
   return [
     'Seitrace Insights Root Tool',
-    'Methods: list_resource, list_resource_actions(resource), list_resource_action_schema(resource), invoke_resource_action(resource), list_resource_action_snippet(resource)',
-    'Workflow: list_resource -> list_resource_actions(resource) -> list_resource_action_schema(resource, action) -> invoke_resource_action(resource, action, payload)',
-    'Use list_resource to enumerate available resources.',
+    'Methods: list_resources, list_resource_actions(resource), list_resource_action_schema(resource), invoke_resource_action(resource), list_resource_action_snippet(resource)',
+    'Workflow: list_resources -> list_resource_actions(resource) -> list_resource_action_schema(resource, action) -> invoke_resource_action(resource, action, payload)',
+    'Use list_resources to enumerate available resources.',
   ].join('\n');
 }
 

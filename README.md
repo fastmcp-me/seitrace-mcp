@@ -32,14 +32,13 @@ Once connected, the client will call `tools/list`, which returns exactly five to
 
 Primary entrypoint: five tools that form the resource-based interface:
 
-- `list_resource` — list available resources
+- `list_resources` — list available resources
 - `list_resource_actions` — list actions for a resource
 - `list_resource_action_schema` — get the JSON Schema for an action
 - `invoke_resource_action` — invoke an action with payload
 - `list_resource_action_snippet` — generate a code snippet for an action
 
-- Methods: `list_resource`, `list_resource_actions`, `list_resource_action_schema`, `invoke_resource_action`, `list_resource_action_snippet`.
-- Flow: list resources -> list actions for a resource -> get action schema -> invoke action or generate a code snippet.
+**Flow: list resources -> list actions for a resource -> get action schema -> invoke action or generate a code snippet.**
 
 Common resources include:
 
@@ -53,15 +52,13 @@ Common resources include:
 - `native` — native token information and statistics.
 - `smart_contract` — smart contract detail.
 
-Compatibility note: grouped controller tools still work if explicitly invoked by name for legacy clients, but they are not listed in `tools/list`.
-
 ## Typical Flow 🔁
 
 Using the MCP SDK, drive the resource-based flow via the five tools:
 
 ```js
 // 1) Discover available resources
-const resources = await client.callTool({ name: 'list_resource', arguments: {} });
+const resources = await client.callTool({ name: 'list_resources', arguments: {} });
 // -> { resources: ['erc20', 'erc721', 'native', ...] }
 
 // 2) List actions for a resource
@@ -137,7 +134,7 @@ SEITRACE_API_KEY=your_key_here npm run test:e2e
 What it checks:
 
 - tools/list only includes the `seitrace` root tool with a compact schema
-- `list_resource` returns available resources
+- `list_resources` returns available resources
 - `list_resource_actions` enumerates names and descriptions
 - `list_resource_action_schema` returns expected properties
 - `invoke_resource_action` validates input and returns live results when API key is set

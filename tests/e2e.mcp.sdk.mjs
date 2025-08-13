@@ -40,7 +40,7 @@ async function main() {
     const names = toolsRes.tools.map((t) => t.name);
     // Exactly five resource tools should be advertised
     const expectedTools = [
-      'list_resource',
+      'list_resources',
       'list_resource_actions',
       'list_resource_action_schema',
       'invoke_resource_action',
@@ -51,8 +51,8 @@ async function main() {
 
     // Root tool schema should expose method enum and language enum
   // Check each tool schema is minimal and as expected
-  const listResource = toolsRes.tools.find((t) => t.name === 'list_resource');
-  if (!listResource || listResource.inputSchema.required?.length) throw new Error('list_resource should require no args');
+  const listResource = toolsRes.tools.find((t) => t.name === 'list_resources');
+  if (!listResource || listResource.inputSchema.required?.length) throw new Error('list_resources should require no args');
   const listActions = toolsRes.tools.find((t) => t.name === 'list_resource_actions');
   if (!listActions?.inputSchema?.required?.includes('resource')) throw new Error('list_resource_actions must require resource');
   const listSchema = toolsRes.tools.find((t) => t.name === 'list_resource_action_schema');
@@ -63,17 +63,17 @@ async function main() {
   if (!snippet?.inputSchema?.required?.includes('resource') || !snippet?.inputSchema?.required?.includes('action') || !snippet?.inputSchema?.required?.includes('language')) throw new Error('list_resource_action_snippet must require resource, action, language');
 
     // Root tool basic flow
-  const rootList = await client.callTool({ name: 'list_resource', arguments: {} });
+  const rootList = await client.callTool({ name: 'list_resources', arguments: {} });
     const rootListText =
       (rootList.content && rootList.content[0] && rootList.content[0].text) || '';
     let rootParsed;
     try {
       rootParsed = JSON.parse(rootListText);
     } catch {
-      throw new Error('list_resource did not return JSON');
+      throw new Error('list_resources did not return JSON');
     }
     if (!Array.isArray(rootParsed.resources) || !rootParsed.resources.length) {
-      throw new Error('list_resource did not return resources');
+      throw new Error('list_resources did not return resources');
     }
   // Ensure resource list includes typical resources
   const expectedControllers = ['address', 'erc20', 'erc721', 'native'];

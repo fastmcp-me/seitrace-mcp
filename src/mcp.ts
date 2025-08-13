@@ -36,7 +36,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
 
   const listResource: Tool = {
-    name: 'list_resource',
+    name: 'list_resources',
     description: 'List available resources (e.g., erc20, erc721, native).',
     inputSchema: {
       type: 'object',
@@ -125,7 +125,7 @@ server.setRequestHandler(
     const { name: toolName, arguments: toolArgs } = request.params;
 
     // Five-tool resource interface
-    if (toolName === 'list_resource') {
+    if (toolName === 'list_resources') {
       const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
       return { content: [{ type: 'text', text: JSON.stringify({ resources }) }] };
     }
