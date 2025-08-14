@@ -36,7 +36,7 @@ Primary entrypoint: five tools that form the resource-based interface:
 - `list_resource_actions` — list actions for a resource
 - `list_resource_action_schema` — get the JSON Schema for an action
 - `invoke_resource_action` — invoke an action with payload
-- `list_resource_action_snippet` — generate a code snippet for an action
+- `get_resource_action_snippet` — generate a code snippet for an action
 
 **Flow: list resources -> list actions for a resource -> get action schema -> invoke action or generate a code snippet.**
 
@@ -74,7 +74,7 @@ const res = await client.callTool({ name: 'invoke_resource_action', arguments: {
 // res.content[0].text -> "API Response (Status: 200):\n{ ... }"
 
 // 5) Optionally, generate a code snippet for an action
-const snippet = await client.callTool({ name: 'list_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
+const snippet = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
 // -> { resource, action, language, snippet }
 ```
 
@@ -131,19 +131,10 @@ Run the E2E to verify the root resource flow and (optionally) a live positive-ca
 SEITRACE_API_KEY=your_key_here npm run test:e2e
 ```
 
-What it checks:
-
-- tools/list only includes the `seitrace` root tool with a compact schema
-- `list_resources` returns available resources
-- `list_resource_actions` enumerates names and descriptions
-- `list_resource_action_schema` returns expected properties
-- `invoke_resource_action` validates input and returns live results when API key is set
-- Snippet generation via `list_resource_action_snippet`
-
 ## Troubleshooting 🛠️
 
-- Validation errors: If `invoke_action` returns “Invalid arguments…”, call `list_action_schema` and ensure your `payload` follows the schema.
-- Unknown action: You’ll get an error that includes the available actions. Use `list_actions` to discover the right name.
+- Validation errors: If `invoke_resource_action` returns “Invalid arguments…”, call `list_resource_action_schema` and ensure your `payload` follows the schema.
+- Unknown action: You’ll get an error that includes the available actions. Use `list_resource_actions` to discover the right name.
 - 401/403 responses: Set `SECRET_APIKEY` with a valid Seitrace key.
 - Network issues: Ensure `API_BASE_URL` is reachable from your environment.
 - Node version: Use Node 20+ as required in `package.json`.

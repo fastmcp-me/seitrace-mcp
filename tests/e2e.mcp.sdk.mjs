@@ -44,7 +44,7 @@ async function main() {
       'list_resource_actions',
       'list_resource_action_schema',
       'invoke_resource_action',
-      'list_resource_action_snippet',
+      'get_resource_action_snippet',
     ];
     for (const t of expectedTools) if (!names.includes(t)) throw new Error(`Missing tool: ${t}`);
     if (toolsRes.tools.length !== 5) throw new Error('Exactly five resource tools should be advertised');
@@ -59,8 +59,8 @@ async function main() {
   if (!listSchema?.inputSchema?.required?.includes('resource') || !listSchema?.inputSchema?.required?.includes('action')) throw new Error('list_resource_action_schema must require resource and action');
   const invoke = toolsRes.tools.find((t) => t.name === 'invoke_resource_action');
   if (!invoke?.inputSchema?.required?.includes('resource') || !invoke?.inputSchema?.required?.includes('action') || !invoke?.inputSchema?.required?.includes('payload')) throw new Error('invoke_resource_action must require resource, action, payload');
-  const snippet = toolsRes.tools.find((t) => t.name === 'list_resource_action_snippet');
-  if (!snippet?.inputSchema?.required?.includes('resource') || !snippet?.inputSchema?.required?.includes('action') || !snippet?.inputSchema?.required?.includes('language')) throw new Error('list_resource_action_snippet must require resource, action, language');
+  const snippet = toolsRes.tools.find((t) => t.name === 'get_resource_action_snippet');
+  if (!snippet?.inputSchema?.required?.includes('resource') || !snippet?.inputSchema?.required?.includes('action') || !snippet?.inputSchema?.required?.includes('language')) throw new Error('get_resource_action_snippet must require resource, action, language');
 
     // Root tool basic flow
   const rootList = await client.callTool({ name: 'list_resources', arguments: {} });
@@ -112,17 +112,17 @@ async function main() {
     }
 
     // Root: snippet
-  const rootSnippet = await client.callTool({ name: 'list_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
+  const rootSnippet = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
     const rootSnippetText =
       (rootSnippet.content && rootSnippet.content[0] && rootSnippet.content[0].text) || '';
     let rootSnippetParsed;
     try {
       rootSnippetParsed = JSON.parse(rootSnippetText);
     } catch {
-      throw new Error('list_resource_action_snippet did not return JSON');
+      throw new Error('get_resource_action_snippet did not return JSON');
     }
     if (!rootSnippetParsed?.snippet || typeof rootSnippetParsed.snippet !== 'string') {
-      throw new Error('list_resource_action_snippet missing snippet string');
+      throw new Error('get_resource_action_snippet missing snippet string');
     }
 
     // 1) Validation error on missing required fields via invoke_resource_action
@@ -168,8 +168,8 @@ async function main() {
       );
     }
 
-    // 5) list_resource_action_snippet returns a code snippet for a known action and language
-  const snippetRes = await client.callTool({ name: 'list_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
+    // 5) get_resource_action_snippet returns a code snippet for a known action and language
+  const snippetRes = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
     const snippetText =
       (snippetRes.content && snippetRes.content[0] && snippetRes.content[0].text) || '';
     let snippetParsed;
@@ -183,8 +183,8 @@ async function main() {
       throw new Error('get_action_snippet missing snippet string');
     }
 
-    // 6) list_resource_action_snippet with unsupported language should error
-  const badLang = await client.callTool({ name: 'list_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'madeup' } });
+    // 6) get_resource_action_snippet with unsupported language should error
+  const badLang = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'madeup' } });
     const badLangText = (badLang.content && badLang.content[0] && badLang.content[0].text) || '';
     if (!/Unsupported or missing language/i.test(badLangText)) {
       throw new Error('Expected unsupported language error from get_action_snippet');

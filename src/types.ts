@@ -22,8 +22,6 @@ export interface McpToolDefinition {
  */
 export interface McpGroupedToolDefinition {
   name: string;
-  description: string;
-  inputSchema: any; // JSON Schema discriminated by `method` and, for invoke_action, by `action`
   actions: Record<string, McpToolDefinition>; // action_name -> endpoint def
 }
 

@@ -5,10 +5,9 @@ import Oas from 'oas';
 import fs from 'fs';
 import NodePath from 'path';
 
-import { endpointDefinitionMap } from './openapi-definition.js';
-import { McpGroupedToolDefinition, McpToolDefinition } from './types.js';
 import { Language, getSupportedLanguages } from '@readme/oas-to-snippet/languages';
 import { fileURLToPath } from 'url';
+import { AxiosError } from 'axios';
 
 // Supported snippet languages (explicit list used in schema and validation)
 export const SUPPORTED_SNIPPET_LANGUAGES = Object.keys(getSupportedLanguages());
@@ -30,62 +29,6 @@ export function camelToSnake(input: string): string {
 export function controllerNameToToolName(controllerName: string): string {
   const stripped = controllerName.replace(/Controller$/, '').replace(/Token/g, '');
   return camelToSnake(stripped);
-}
-
-/**
- * Build a grouped tool JSON Schema with 3-layer method flow:
- * - list_actions
- * - list_action_schema (requires action)
- * - invoke_action (requires action + action's schema)
- * Uses a unified schema with enum for method selection instead of oneOf.
- */
-export function buildGroupedInputSchema(_actions: Record<string, McpToolDefinition>): any {
-  return {
-    type: 'object',
-    properties: {
-      method: {
-        type: 'string',
-        enum: ['list_actions', 'list_action_schema', 'invoke_action', 'get_action_snippet'],
-        description:
-          'The method to execute: list_actions, list_action_schema, invoke_action, or get_action_snippet',
-      },
-      action: {
-        type: 'string',
-        description:
-          'Action identifier (required for list_action_schema, invoke_action, and get_action_snippet)',
-      },
-      payload: {
-        type: 'object',
-        description: 'Action-specific input payload (required for invoke_action)',
-        additionalProperties: true,
-      },
-      language: {
-        type: 'string',
-        enum: SUPPORTED_SNIPPET_LANGUAGES,
-        description:
-          'Target language for get_action_snippet. Supported: ' +
-          SUPPORTED_SNIPPET_LANGUAGES.join(', '),
-      },
-    },
-    required: ['method'],
-    additionalProperties: false,
-    description: 'Unified schema supporting all three method types based on the method property',
-  };
-}
-
-/**
- * Build a concise, LLM-friendly description enumerating available actions.
- */
-export function buildGroupedDescription(
-  controllerDisplay: string,
-  _actions: Record<string, McpToolDefinition>
-): string {
-  return [
-    `Controller: ${controllerDisplay}`,
-  `Methods: list_actions, list_action_schema, invoke_action, get_action_snippet`,
-    `Workflow: list_actions -> list_action_schema(action) -> invoke_action(action, ...)`,
-    `Use list_actions to enumerate available actions.`,
-  ].join('\n');
 }
 
 /**
@@ -111,42 +54,6 @@ export function getZodSchemaFromJsonSchema(jsonSchema: any, toolName: string): z
     return z.object({}).passthrough();
   }
 }
-
-/**
- * Construct grouped tools from flat endpoint definitions
- */
-export const groupedToolDefinitionMap: Map<string, McpGroupedToolDefinition> = (() => {
-  const map = new Map<string, McpGroupedToolDefinition>();
-
-  for (const [fullName, def] of endpointDefinitionMap.entries()) {
-    // fullName format: <ControllerName>-<ActionNameCamel>
-    const [controllerPart, actionCamel = ''] = fullName.split('-');
-    const toolName = controllerNameToToolName(controllerPart);
-    const actionName = camelToSnake(actionCamel);
-
-    // Initialize grouped entry if needed
-    if (!map.has(toolName)) {
-      map.set(toolName, {
-        name: toolName,
-        description: '', // filled later
-        inputSchema: {}, // filled later
-        actions: {},
-      });
-    }
-    const grouped = map.get(toolName)!;
-    grouped.actions[actionName] = def;
-  }
-
-  // Finalize description and schema per grouped tool
-  for (const grouped of map.values()) {
-    grouped.inputSchema = buildGroupedInputSchema(grouped.actions);
-    // Pretty display name derived from tool name
-    const display = grouped.name;
-    grouped.description = buildGroupedDescription(display, grouped.actions);
-  }
-
-  return map;
-})();
 
 /**
  * The function to generate code snippets from the API specifications
@@ -199,7 +106,7 @@ export const generateSnippet = (path: string, language: string) => {
 
   // Prepare security headers
   const auth = Object.keys(operation.schema.security?.[0] || {}).reduce((accum, key) => {
-    accum[key] = "<should-insert-seitrace-api-key-here>"
+    accum[key] = '<should-insert-seitrace-api-key-here>';
     return accum;
   }, {} as Record<string, any>);
 
@@ -207,4 +114,42 @@ export const generateSnippet = (path: string, language: string) => {
   const { code } = oasToSnippet(apiDefinition, operation, formData, auth, language as Language);
   return code;
 };
- 
+
+/**
+ * Formats API errors for better readability
+ *
+ * @param error Axios error
+ * @returns Formatted error message
+ */
+export function formatApiError(error: AxiosError): string {
+  let message = 'API request failed.';
+  if (error.response) {
+    message = `API Error: Status ${error.response.status} (${
+      error.response.statusText || 'Status text not available'
+    }). `;
+    const responseData = error.response.data;
+    const MAX_LEN = 200;
+    if (typeof responseData === 'string') {
+      message += `Response: ${responseData.substring(0, MAX_LEN)}${
+        responseData.length > MAX_LEN ? '...' : ''
+      }`;
+    } else if (responseData) {
+      try {
+        const jsonString = JSON.stringify(responseData);
+        message += `Response: ${jsonString.substring(0, MAX_LEN)}${
+          jsonString.length > MAX_LEN ? '...' : ''
+        }`;
+      } catch {
+        message += 'Response: [Could not serialize data]';
+      }
+    } else {
+      message += 'No response body received.';
+    }
+  } else if (error.request) {
+    message = 'API Network Error: No response received from server.';
+    if (error.code) message += ` (Code: ${error.code})`;
+  } else {
+    message += `API Request Setup Error: ${error.message}`;
+  }
+  return message;
+}
