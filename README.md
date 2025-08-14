@@ -1,4 +1,4 @@
-![demo](https://assets.seitrace.com/seitrace-mcp.gif)
+<img src="https://assets.seitrace.com/seitrace-mcp.gif?v=10" width="1280"></img>
 
 # Seitrace Insights MCP Server 🚀
 
