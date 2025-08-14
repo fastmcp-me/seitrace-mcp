@@ -42,7 +42,7 @@ async function main() {
     const expectedTools = [
       'list_resources',
       'list_resource_actions',
-      'list_resource_action_schema',
+      'get_resource_action_schema',
       'invoke_resource_action',
       'get_resource_action_snippet',
     ];
@@ -55,8 +55,8 @@ async function main() {
   if (!listResource || listResource.inputSchema.required?.length) throw new Error('list_resources should require no args');
   const listActions = toolsRes.tools.find((t) => t.name === 'list_resource_actions');
   if (!listActions?.inputSchema?.required?.includes('resource')) throw new Error('list_resource_actions must require resource');
-  const listSchema = toolsRes.tools.find((t) => t.name === 'list_resource_action_schema');
-  if (!listSchema?.inputSchema?.required?.includes('resource') || !listSchema?.inputSchema?.required?.includes('action')) throw new Error('list_resource_action_schema must require resource and action');
+  const listSchema = toolsRes.tools.find((t) => t.name === 'get_resource_action_schema');
+  if (!listSchema?.inputSchema?.required?.includes('resource') || !listSchema?.inputSchema?.required?.includes('action')) throw new Error('get_resource_action_schema must require resource and action');
   const invoke = toolsRes.tools.find((t) => t.name === 'invoke_resource_action');
   if (!invoke?.inputSchema?.required?.includes('resource') || !invoke?.inputSchema?.required?.includes('action') || !invoke?.inputSchema?.required?.includes('payload')) throw new Error('invoke_resource_action must require resource, action, payload');
   const snippet = toolsRes.tools.find((t) => t.name === 'get_resource_action_snippet');
@@ -95,20 +95,20 @@ async function main() {
     }
 
     // Root: list action schema
-  const rootSchema = await client.callTool({ name: 'list_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
+  const rootSchema = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
     const rootSchemaText =
       (rootSchema.content && rootSchema.content[0] && rootSchema.content[0].text) || '';
     let rootSchemaParsed;
     try {
       rootSchemaParsed = JSON.parse(rootSchemaText);
     } catch {
-      throw new Error('list_resource_action_schema did not return JSON');
+      throw new Error('get_resource_action_schema did not return JSON');
     }
     if (
       !rootSchemaParsed?.schema?.properties?.chain_id ||
       !rootSchemaParsed?.schema?.properties?.contract_address
     ) {
-      throw new Error('list_resource_action_schema did not include expected properties');
+      throw new Error('get_resource_action_schema did not include expected properties');
     }
 
     // Root: snippet
@@ -133,8 +133,8 @@ async function main() {
       throw new Error('Expected validation error text when calling erc20 without required args');
     }
 
-    // 2) Unknown action handling via list_resource_action_schema
-  const unknown = await client.callTool({ name: 'list_resource_action_schema', arguments: { resource: 'erc20', action: 'nonexistent_action' } });
+    // 2) Unknown action handling via get_resource_action_schema
+  const unknown = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'erc20', action: 'nonexistent_action' } });
     // dbg('Unknown action call result:', JSON.stringify(unknown));
     const unknownText = (unknown.content && unknown.content[0] && unknown.content[0].text) || '';
     if (!/Unknown action .* Available actions:/i.test(unknownText)) {
@@ -153,8 +153,8 @@ async function main() {
       throw new Error('list_resource_actions did not return action descriptions');
     }
 
-    // 4) list_resource_action_schema returns JSON schema for a known action
-  const schemaRes = await client.callTool({ name: 'list_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
+    // 4) get_resource_action_schema returns JSON schema for a known action
+  const schemaRes = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
     // dbg('list_action_schema result:', schemaRes);
     const schemaText =
       (schemaRes.content && schemaRes.content[0] && schemaRes.content[0].text) || '';

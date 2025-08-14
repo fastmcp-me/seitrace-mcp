@@ -2,11 +2,11 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { groupedToolDefinitionMap } from '../openapi-definition.js';
 
 /**
- * Handles the 'list_resource_action_schema' tool request
+ * Handles the 'get_resource_action_schema' tool request
  * @param toolArgs - The arguments provided to the tool
  * @returns The result of the tool execution
  */
-export const listResourceActionSchemaHandler = (toolArgs: any): CallToolResult => {
+export const getResourceActionSchemaHandler = (toolArgs: any): CallToolResult => {
   const argObj =
     typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
   const resource: string | undefined = argObj.resource;

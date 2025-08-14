@@ -3,7 +3,7 @@ import { SUPPORTED_SNIPPET_LANGUAGES } from '../utils.js';
 import {
   GET_RESOURCE_ACTION_SNIPPET_TOOL,
   INVOKE_RESOURCE_ACTION_TOOL,
-  LIST_RESOURCE_ACTION_SCHEMA_TOOL,
+  GET_RESOURCE_ACTION_SCHEMA_TOOL,
   LIST_RESOURCE_ACTIONS_TOOL,
   LIST_RESOURCES_TOOL,
 } from '../constants.js';
@@ -40,7 +40,7 @@ export const toolListHandler = () => {
   };
 
   const listResourceActionSchema: Tool = {
-    name: LIST_RESOURCE_ACTION_SCHEMA_TOOL,
+    name: GET_RESOURCE_ACTION_SCHEMA_TOOL,
     description: 'Get the JSON Schema for a specific resource action.',
     inputSchema: {
       type: 'object',
