@@ -36,7 +36,7 @@ Primary entrypoint: five tools that form the resource-based interface:
 - `list_resource_actions` — list actions for a resource
 - `list_resource_action_schema` — get the JSON Schema for an action
 - `invoke_resource_action` — invoke an action with payload
-- `get_resource_action_snippet` — generate a code snippet for an action
+- `get_resource_action_snippet` — generate a code snippet to perform a resource action in the specified language, for example, a javascript snippet to call the action with the required parameters
 
 **Flow: list resources -> list actions for a resource -> get action schema -> invoke action or generate a code snippet.**
 

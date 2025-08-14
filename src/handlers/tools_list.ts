@@ -1,5 +1,12 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { SUPPORTED_SNIPPET_LANGUAGES } from '../utils.js';
+import {
+  GET_RESOURCE_ACTION_SNIPPET_TOOL,
+  INVOKE_RESOURCE_ACTION_TOOL,
+  LIST_RESOURCE_ACTION_SCHEMA_TOOL,
+  LIST_RESOURCE_ACTIONS_TOOL,
+  LIST_RESOURCES_TOOL,
+} from '../constants.js';
 
 /**
  * Tool list handler
@@ -7,7 +14,7 @@ import { SUPPORTED_SNIPPET_LANGUAGES } from '../utils.js';
  */
 export const toolListHandler = () => {
   const listResource: Tool = {
-    name: 'list_resources',
+    name: LIST_RESOURCES_TOOL,
     description: 'List available resources (e.g., erc20, erc721, native).',
     inputSchema: {
       type: 'object',
@@ -19,7 +26,7 @@ export const toolListHandler = () => {
   };
 
   const listResourceActions: Tool = {
-    name: 'list_resource_actions',
+    name: LIST_RESOURCE_ACTIONS_TOOL,
     description: 'List actions for a given resource.',
     inputSchema: {
       type: 'object',
@@ -33,7 +40,7 @@ export const toolListHandler = () => {
   };
 
   const listResourceActionSchema: Tool = {
-    name: 'list_resource_action_schema',
+    name: LIST_RESOURCE_ACTION_SCHEMA_TOOL,
     description: 'Get the JSON Schema for a specific resource action.',
     inputSchema: {
       type: 'object',
@@ -48,7 +55,7 @@ export const toolListHandler = () => {
   };
 
   const invokeResourceAction: Tool = {
-    name: 'invoke_resource_action',
+    name: INVOKE_RESOURCE_ACTION_TOOL,
     description: 'Invoke a resource action with a payload matching its schema.',
     inputSchema: {
       type: 'object',
@@ -64,8 +71,9 @@ export const toolListHandler = () => {
   };
 
   const listResourceActionSnippet: Tool = {
-    name: 'get_resource_action_snippet',
-    description: 'Generate a code snippet for a given resource action in the specified language.',
+    name: GET_RESOURCE_ACTION_SNIPPET_TOOL,
+    description:
+      'Generate a code snippet to perform a resource action in the specified language. For example, a JavaScript snippet to call the action with the required parameters.',
     inputSchema: {
       type: 'object',
       properties: {
