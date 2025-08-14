@@ -15,13 +15,10 @@ import {
   groupedToolDefinitionMap,
   generateSnippet,
   SUPPORTED_SNIPPET_LANGUAGES,
-  ROOT_TOOL_NAME,
-  buildRootInputSchema,
-  buildRootDescription,
 } from './utils.js';
 import { acquireOAuth2Token } from './auth.js';
 import { API_BASE_URL, SERVER_NAME, SERVER_VERSION } from './constants.js';
-import { endpointDefinitionMap, securitySchemes } from './openapi-definition.js';
+import { securitySchemes } from './openapi-definition.js';
 
 /**
  * MCP Server instance
@@ -53,7 +50,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     inputSchema: {
       type: 'object',
       properties: {
-        resource: { type: 'string', enum: resources, description: 'Resource name.' },
+        resource: { type: 'string', description: 'Resource name.' },
       },
       required: ['resource'],
       additionalProperties: false,
@@ -67,7 +64,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     inputSchema: {
       type: 'object',
       properties: {
-        resource: { type: 'string', enum: resources },
+        resource: { type: 'string' },
         action: { type: 'string' },
       },
       required: ['resource', 'action'],
@@ -82,7 +79,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     inputSchema: {
       type: 'object',
       properties: {
-        resource: { type: 'string', enum: resources },
+        resource: { type: 'string' },
         action: { type: 'string' },
         payload: { type: 'object', additionalProperties: true },
       },
@@ -98,13 +95,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     inputSchema: {
       type: 'object',
       properties: {
-        resource: { type: 'string', enum: resources },
+        resource: { type: 'string' },
         action: { type: 'string' },
-        language: { type: 'string', enum: SUPPORTED_SNIPPET_LANGUAGES },
+        language: { type: 'string' },
       },
       required: ['resource', 'action', 'language'],
       additionalProperties: false,
-      description: 'Provide resource, action, and target language.',
+      description: `Provide resource, action, and target language. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(
+        ', '
+      )}`,
     },
   };
 
