@@ -1,3 +1,5 @@
+![demo](https://assets.seitrace.com/seitrace-mcp.gif)
+
 # Seitrace Insights MCP Server 🚀
 
 A Model Context Protocol (MCP) server that exposes the Seitrace Insights API as model-friendly tools. It now advertises five focused tools that implement a resource-based interface so LLMs can discover resources, list actions, fetch schemas, invoke them, and generate code snippets. Grouped tools (e.g., `erc20`, `native`) remain available for compatibility but are not listed.
