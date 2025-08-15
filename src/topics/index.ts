@@ -15,5 +15,5 @@ export const AVAILABLE_TOPICS: ITopic[] = [insights];
  * Map resource names to their corresponding topic instances.
  */
 export const TOPIC_KEY_MAP: Record<string, ITopic> = {
-  insights: insights,
+  [insights.TOPIC_KEY]: insights,
 };
