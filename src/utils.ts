@@ -218,7 +218,7 @@ export const executeApiTool = async (
         return McpResponse(validationErrorMessage);
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return McpResponse(`Internal error during validation setup: ${errorMessage}`);
+        return McpResponse(`Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`);
       }
     }
 

@@ -61,7 +61,6 @@ async function main() {
         }
         // Call the appropriate handler
         const handler = (handlerMap as any)[toolName];
-        console.log(toolArgs)
         return await handler(toolArgs);
       }
     );
