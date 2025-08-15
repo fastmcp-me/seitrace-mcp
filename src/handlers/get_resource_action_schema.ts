@@ -1,46 +1,30 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { groupedToolDefinitionMap } from '../openapi-definition.js';
+
+import { ToolArgs } from '../topics/base.js';
+import { TOPIC_KEY_MAP } from '../topics/index.js';
+import { McpResponse } from '../utils.js';
 
 /**
- * Handles the 'get_resource_action_schema' tool request
+ * Handles the 'getResourceActionSchema' tool request
  * @param toolArgs - The arguments provided to the tool
  * @returns The result of the tool execution
  */
-export const getResourceActionSchemaHandler = (toolArgs: any): CallToolResult => {
-  const argObj =
-    typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
-  const resource: string | undefined = argObj.resource;
-  const action: string | undefined = argObj.action;
-  if (!resource || !groupedToolDefinitionMap.has(resource)) {
-    const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Unknown or missing resource '${resource}'. Available resources: ${resources.join(
-            ', '
-          )}`,
-        },
-      ],
-    };
+export const getResourceActionSchemaHandler = async (
+  toolArgs: ToolArgs
+): Promise<CallToolResult> => {
+  const { resource } = toolArgs;
+  const topicKey = resource.split('_')[0];
+  const foundResource = TOPIC_KEY_MAP[topicKey];
+
+  /**
+   * Check if the resource exists
+   */
+  if (!foundResource || !(await foundResource.getResources()).has(resource)) {
+    return McpResponse(`Unknown or missing resource '${resource}'.`);
   }
-  if (!action) {
-    return { content: [{ type: 'text', text: `Missing action for resource '${resource}'.` }] };
-  }
-  const grouped = groupedToolDefinitionMap.get(resource)!;
-  if (!grouped.actions[action]) {
-    const available = Object.keys(grouped.actions).sort();
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Unknown action '${action}' for resource '${resource}'. Available actions: ${available.join(
-            ', '
-          )}`,
-        },
-      ],
-    };
-  }
-  const schema = grouped.actions[action].inputSchema;
-  return { content: [{ type: 'text', text: JSON.stringify({ resource, action, schema }) }] };
+
+  /**
+   * List actions for the resource
+   */
+  return foundResource.getResourceActionSchema(toolArgs);
 };

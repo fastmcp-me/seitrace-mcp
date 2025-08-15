@@ -1,31 +1,28 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { groupedToolDefinitionMap } from '../openapi-definition.js';
+
+import { TOPIC_KEY_MAP } from '../topics/index.js';
+import { ToolArgs } from '../topics/base.js';
+import { McpResponse } from '../utils.js';
 
 /**
  * List actions for a specific resource
  * @param toolArgs - The arguments for the tool
  * @returns A list of actions for the specified resource
  */
-export const listResourceActionsHandler = (toolArgs: any): CallToolResult => {
-  const argObj =
-    typeof toolArgs === 'object' && toolArgs !== null ? (toolArgs as Record<string, any>) : {};
-  const resource: string | undefined = argObj.resource;
-  if (!resource || !groupedToolDefinitionMap.has(resource)) {
-    const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Unknown or missing resource '${resource}'. Available resources: ${resources.join(
-            ', '
-          )}`,
-        },
-      ],
-    };
+export const listResourceActionsHandler = async (toolArgs: ToolArgs): Promise<CallToolResult> => {
+  const { resource } = toolArgs;
+  const topicKey = resource.split('_')[0];
+  const foundResource = TOPIC_KEY_MAP[topicKey];
+
+  /**
+   * Check if the resource exists
+   */
+  if (!foundResource || !(await foundResource.getResources()).has(resource)) {
+    return McpResponse(`Unknown or missing resource '${resource}'.`);
   }
-  const grouped = groupedToolDefinitionMap.get(resource)!;
-  const actions = Object.entries(grouped.actions)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([name, def]) => ({ name, description: (def.description || '').trim() }));
-  return { content: [{ type: 'text', text: JSON.stringify({ resource, actions }) }] };
+
+  /**
+   * List actions for the resource
+   */
+  return foundResource.listResourceActions(toolArgs);
 };

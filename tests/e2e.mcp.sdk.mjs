@@ -34,127 +34,174 @@ async function main() {
   await client.connect(transport);
   try {
     const toolsRes = await client.listTools();
-    dbg('List tools response:', JSON.stringify(toolsRes));
+    // dbg('List tools response:', JSON.stringify(toolsRes));
     if (!Array.isArray(toolsRes.tools)) throw new Error('tools/list did not return an array');
 
     const names = toolsRes.tools.map((t) => t.name);
     // Exactly five resource tools should be advertised
     const expectedTools = [
-      'list_resources',
-      'list_resource_actions',
-      'get_resource_action_schema',
-      'invoke_resource_action',
-      'get_resource_action_snippet',
+      'listResource',
+      'listResourceActions',
+      'getResourceActionSchema',
+      'invokeResourceAction',
+      'getResourceActionSnippet',
     ];
     for (const t of expectedTools) if (!names.includes(t)) throw new Error(`Missing tool: ${t}`);
-    if (toolsRes.tools.length !== 5) throw new Error('Exactly five resource tools should be advertised');
+    if (toolsRes.tools.length !== 5)
+      throw new Error('Exactly five resource tools should be advertised');
 
     // Root tool schema should expose method enum and language enum
-  // Check each tool schema is minimal and as expected
-  const listResource = toolsRes.tools.find((t) => t.name === 'list_resources');
-  if (!listResource || listResource.inputSchema.required?.length) throw new Error('list_resources should require no args');
-  const listActions = toolsRes.tools.find((t) => t.name === 'list_resource_actions');
-  if (!listActions?.inputSchema?.required?.includes('resource')) throw new Error('list_resource_actions must require resource');
-  const listSchema = toolsRes.tools.find((t) => t.name === 'get_resource_action_schema');
-  if (!listSchema?.inputSchema?.required?.includes('resource') || !listSchema?.inputSchema?.required?.includes('action')) throw new Error('get_resource_action_schema must require resource and action');
-  const invoke = toolsRes.tools.find((t) => t.name === 'invoke_resource_action');
-  if (!invoke?.inputSchema?.required?.includes('resource') || !invoke?.inputSchema?.required?.includes('action') || !invoke?.inputSchema?.required?.includes('payload')) throw new Error('invoke_resource_action must require resource, action, payload');
-  const snippet = toolsRes.tools.find((t) => t.name === 'get_resource_action_snippet');
-  if (!snippet?.inputSchema?.required?.includes('resource') || !snippet?.inputSchema?.required?.includes('action') || !snippet?.inputSchema?.required?.includes('language')) throw new Error('get_resource_action_snippet must require resource, action, language');
+    // Check each tool schema is minimal and as expected
+    const listResource = toolsRes.tools.find((t) => t.name === 'listResource');
+    if (!listResource || listResource.inputSchema.required?.length)
+      throw new Error('listResource should require no args');
+    const listActions = toolsRes.tools.find((t) => t.name === 'listResourceActions');
+    if (!listActions?.inputSchema?.required?.includes('resource'))
+      throw new Error('listResourceActions must require resource');
+    const listSchema = toolsRes.tools.find((t) => t.name === 'getResourceActionSchema');
+    if (
+      !listSchema?.inputSchema?.required?.includes('resource') ||
+      !listSchema?.inputSchema?.required?.includes('action')
+    )
+      throw new Error('getResourceActionSchema must require resource and action');
+    const invoke = toolsRes.tools.find((t) => t.name === 'invokeResourceAction');
+    if (
+      !invoke?.inputSchema?.required?.includes('resource') ||
+      !invoke?.inputSchema?.required?.includes('action') ||
+      !invoke?.inputSchema?.required?.includes('payload')
+    )
+      throw new Error('invokeResourceAction must require resource, action, payload');
+    const snippet = toolsRes.tools.find((t) => t.name === 'getResourceActionSnippet');
+    if (
+      !snippet?.inputSchema?.required?.includes('resource') ||
+      !snippet?.inputSchema?.required?.includes('action') ||
+      !snippet?.inputSchema?.required?.includes('language')
+    )
+      throw new Error('getResourceActionSnippet must require resource, action, language');
 
     // Root tool basic flow
-  const rootList = await client.callTool({ name: 'list_resources', arguments: {} });
+    const rootList = await client.callTool({ name: 'listResource', arguments: {} });
     const rootListText =
       (rootList.content && rootList.content[0] && rootList.content[0].text) || '';
     let rootParsed;
     try {
       rootParsed = JSON.parse(rootListText);
     } catch {
-      throw new Error('list_resources did not return JSON');
+      throw new Error('listResource did not return JSON');
     }
     if (!Array.isArray(rootParsed.resources) || !rootParsed.resources.length) {
-      throw new Error('list_resources did not return resources');
+      throw new Error('listResource did not return resources');
     }
-  // Ensure resource list includes typical resources
-  const expectedControllers = ['address', 'erc20', 'erc721', 'native'];
-  const missing = expectedControllers.filter((n) => !rootParsed.resources.includes(n));
-  if (missing.length) throw new Error(`Missing resources: ${missing.join(', ')}`);
+    // Ensure resource list includes typical resources
+    const expectedControllers = [
+      'insights_address',
+      'insights_erc20',
+      'insights_erc721',
+      'insights_native',
+    ];
+    const missing = expectedControllers.filter((n) => !rootParsed.resources.includes(n));
+    if (missing.length) throw new Error(`Missing resources: ${missing.join(', ')}`);
 
-    // Root: list actions for erc20
-  const rootActions = await client.callTool({ name: 'list_resource_actions', arguments: { resource: 'erc20' } });
+    // Root: list actions for insights_erc20
+    const rootActions = await client.callTool({
+      name: 'listResourceActions',
+      arguments: { resource: 'insights_erc20' },
+    });
     const rootActionsText =
       (rootActions.content && rootActions.content[0] && rootActions.content[0].text) || '';
+    dbg('Root actions text:', rootActionsText);
     let rootActionsParsed;
     try {
       rootActionsParsed = JSON.parse(rootActionsText);
     } catch {
-      throw new Error('list_resource_actions did not return JSON');
+      throw new Error('listResourceActions did not return JSON');
     }
     if (!Array.isArray(rootActionsParsed.actions) || !rootActionsParsed.actions.length) {
-      throw new Error('list_resource_actions did not return actions');
+      throw new Error('listResourceActions did not return actions');
     }
 
     // Root: list action schema
-  const rootSchema = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
+    const rootSchema = await client.callTool({
+      name: 'getResourceActionSchema',
+      arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info' },
+    });
     const rootSchemaText =
       (rootSchema.content && rootSchema.content[0] && rootSchema.content[0].text) || '';
     let rootSchemaParsed;
     try {
       rootSchemaParsed = JSON.parse(rootSchemaText);
     } catch {
-      throw new Error('get_resource_action_schema did not return JSON');
+      throw new Error('getResourceActionSchema did not return JSON');
     }
     if (
       !rootSchemaParsed?.schema?.properties?.chain_id ||
       !rootSchemaParsed?.schema?.properties?.contract_address
     ) {
-      throw new Error('get_resource_action_schema did not include expected properties');
+      throw new Error('getResourceActionSchema did not include expected properties');
     }
 
     // Root: snippet
-  const rootSnippet = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
+    const rootSnippet = await client.callTool({
+      name: 'getResourceActionSnippet',
+      arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', language: 'node' },
+    });
     const rootSnippetText =
       (rootSnippet.content && rootSnippet.content[0] && rootSnippet.content[0].text) || '';
     let rootSnippetParsed;
     try {
       rootSnippetParsed = JSON.parse(rootSnippetText);
     } catch {
-      throw new Error('get_resource_action_snippet did not return JSON');
+      throw new Error('getResourceActionSnippet did not return JSON');
     }
     if (!rootSnippetParsed?.snippet || typeof rootSnippetParsed.snippet !== 'string') {
-      throw new Error('get_resource_action_snippet missing snippet string');
+      throw new Error('getResourceActionSnippet missing snippet string');
     }
 
-    // 1) Validation error on missing required fields via invoke_resource_action
-  const bad = await client.callTool({ name: 'invoke_resource_action', arguments: { resource: 'erc20', action: 'get_erc20_token_info', payload: {} } });
+    // 1) Validation error on missing required fields via invokeResourceAction
+    const bad = await client.callTool({
+      name: 'invokeResourceAction',
+      arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', payload: {} },
+    });
     // dbg('Bad validation call result:', JSON.stringify(bad));
     const badText = (bad.content && bad.content[0] && bad.content[0].text) || '';
     if (!/Invalid arguments|Error validating input/i.test(badText)) {
-      throw new Error('Expected validation error text when calling erc20 without required args');
+      throw new Error(
+        'Expected validation error text when calling insights_erc20 without required args'
+      );
     }
 
-    // 2) Unknown action handling via get_resource_action_schema
-  const unknown = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'erc20', action: 'nonexistent_action' } });
-    // dbg('Unknown action call result:', JSON.stringify(unknown));
+    // 2) Unknown action handling via getResourceActionSchema
+    const unknown = await client.callTool({
+      name: 'getResourceActionSchema',
+      arguments: { resource: 'insights_erc20', action: 'nonexistent_action' },
+    });
+    dbg('Unknown action call result:', JSON.stringify(unknown));
     const unknownText = (unknown.content && unknown.content[0] && unknown.content[0].text) || '';
-    if (!/Unknown action .* Available actions:/i.test(unknownText)) {
+    if (!/Unknown or missing action .*/i.test(unknownText)) {
       throw new Error('Expected unknown action error with available actions list');
     }
 
-  // 3) list_resource_actions returns names and descriptions
-  const list = await client.callTool({ name: 'list_resource_actions', arguments: { resource: 'erc20' } });
+    // 3) listResourceActions returns names and descriptions
+    const list = await client.callTool({
+      name: 'listResourceActions',
+      arguments: { resource: 'insights_erc20' },
+    });
     const listText = (list.content && list.content[0] && list.content[0].text) || '';
     const parsed = JSON.parse(listText);
+    dbg('listResourceActions result:', JSON.stringify(parsed, null, 2));
     if (
       !Array.isArray(parsed.actions) ||
       !parsed.actions.length ||
       !parsed.actions[0].description
     ) {
-      throw new Error('list_resource_actions did not return action descriptions');
+      throw new Error('listResourceActions did not return action descriptions');
     }
 
-    // 4) get_resource_action_schema returns JSON schema for a known action
-  const schemaRes = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'erc20', action: 'get_erc20_token_info' } });
+    // 4) getResourceActionSchema returns JSON schema for a known action
+    const schemaRes = await client.callTool({
+      name: 'getResourceActionSchema',
+      arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info' },
+    });
     // dbg('list_action_schema result:', schemaRes);
     const schemaText =
       (schemaRes.content && schemaRes.content[0] && schemaRes.content[0].text) || '';
@@ -168,8 +215,11 @@ async function main() {
       );
     }
 
-    // 5) get_resource_action_snippet returns a code snippet for a known action and language
-  const snippetRes = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'node' } });
+    // 5) getResourceActionSnippet returns a code snippet for a known action and language
+    const snippetRes = await client.callTool({
+      name: 'getResourceActionSnippet',
+      arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', language: 'node' },
+    });
     const snippetText =
       (snippetRes.content && snippetRes.content[0] && snippetRes.content[0].text) || '';
     let snippetParsed;
@@ -183,21 +233,32 @@ async function main() {
       throw new Error('get_action_snippet missing snippet string');
     }
 
-    // 6) get_resource_action_snippet with unsupported language should error
-  const badLang = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'erc20', action: 'get_erc20_token_info', language: 'madeup' } });
+    // 6) getResourceActionSnippet with unsupported language should error
+    const badLang = await client.callTool({
+      name: 'getResourceActionSnippet',
+      arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', language: 'madeup' },
+    });
     const badLangText = (badLang.content && badLang.content[0] && badLang.content[0].text) || '';
+    dbg('get_action_snippet with bad language result:', badLangText);
     if (!/Unsupported or missing language/i.test(badLangText)) {
       throw new Error('Expected unsupported language error from get_action_snippet');
     }
 
     // Optional: Positive-path live call if API key available
     if (providedKey) {
-  const ok = await client.callTool({ name: 'invoke_resource_action', arguments: { resource: 'native', action: 'get_native_token_info_and_statistic', payload: { chain_id: 'pacific-1', token_denom: 'usei' } } });
+      const ok = await client.callTool({
+        name: 'invokeResourceAction',
+        arguments: {
+          resource: 'insights_native',
+          action: 'get_native_token_info_and_statistic',
+          payload: { chain_id: 'pacific-1', token_denom: 'usei' },
+        },
+      });
       const okText = (ok.content && ok.content[0] && ok.content[0].text) || '';
       dbg('Positive call result:', okText.slice(0, 200) + (okText.length > 200 ? '...' : ''));
       if (!/API Response \(Status: \d+\)/.test(okText)) {
         throw new Error(
-          'Expected API Response for positive-path native.get_native_token_info_and_statistic'
+          'Expected API Response for positive-path insights_native.get_native_token_info_and_statistic'
         );
       }
     }

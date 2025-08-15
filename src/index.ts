@@ -16,6 +16,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { handlerMap } from './handlers/index.js';
 import { toolListHandler } from './handlers/tools_list.js';
+import { McpResponse } from './utils.js';
 
 /**
  * Cleanup function for graceful shutdown
@@ -56,12 +57,12 @@ async function main() {
         // Check if the tool is known
         if (!Object.keys(handlerMap).includes(toolName)) {
           console.error(`Error: Unknown tool requested: ${toolName}`);
-          return {
-            content: [{ type: 'text', text: `Error: Unknown tool requested: ${toolName}` }],
-          };
+          return McpResponse(`Error: Unknown tool requested: ${toolName}`);
         }
         // Call the appropriate handler
-        return (handlerMap as any)[toolName](toolArgs);
+        const handler = (handlerMap as any)[toolName];
+        console.log(toolArgs)
+        return await handler(toolArgs);
       }
     );
 

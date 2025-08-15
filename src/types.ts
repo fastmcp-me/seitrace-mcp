@@ -1,3 +1,5 @@
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+
 /**
  * Type definition for JSON objects
  */
@@ -9,9 +11,9 @@ export type JsonObject = Record<string, any>;
 export interface McpToolDefinition {
   name: string;
   description: string;
-  inputSchema: any;
-  method: string;
-  pathTemplate: string;
+  inputSchema: Tool['inputSchema'];
+  method?: string;
+  pathTemplate?: string;
   executionParameters: { name: string; in: string }[];
   requestBodyContentType?: string;
   securityRequirements: any[];

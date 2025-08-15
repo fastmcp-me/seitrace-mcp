@@ -15,7 +15,8 @@ import {
 export const toolListHandler = () => {
   const listResource: Tool = {
     name: LIST_RESOURCES_TOOL,
-    description: 'List available resources (e.g., erc20, erc721, native).',
+    description:
+      'List available resources (e.g., insights_erc20, insights_erc721, insights_native).',
     inputSchema: {
       type: 'object',
       properties: {},

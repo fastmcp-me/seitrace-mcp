@@ -5,8 +5,7 @@
   "type": "module",
   "main": "build/index.js",
   "files": [
-    "build",
-    "src"
+    "build"
   ],
   "keywords": [
     "seitrace",

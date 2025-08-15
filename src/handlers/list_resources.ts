@@ -1,11 +1,28 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { groupedToolDefinitionMap } from '../openapi-definition.js';
+import { AVAILABLE_TOPICS } from '../topics/index.js';
+import { McpResponse } from '../utils.js';
 
 /**
  * List all available resources.
  * @returns A response containing the list of resources.
  */
-export const listResourcesHandler = (_: any): CallToolResult => {
-  const resources = Array.from(groupedToolDefinitionMap.keys()).sort();
-  return { content: [{ type: 'text', text: JSON.stringify({ resources }) }] };
+export const listResourcesHandler = async (_: any): Promise<CallToolResult> => {
+  /**
+   * List all available resources.
+   */
+  const allResources = await Promise.all(
+    AVAILABLE_TOPICS.map(async (topic) => {
+      return await topic.getResources();
+    })
+  );
+
+  /**
+   * Flatten the array of resources.
+   */
+  const resources = allResources.reduce<string[]>((acc, topicResources) => {
+    return acc.concat(Array.from(topicResources.keys()));
+  }, []);
+
+  // Return the list of resources.
+  return McpResponse(JSON.stringify({ resources }));
 };

@@ -1,5 +1,5 @@
-import { McpGroupedToolDefinition, McpToolDefinition } from './types.js';
-import { controllerNameToToolName, camelToSnake } from './utils.js';
+import { McpGroupedToolDefinition, McpToolDefinition } from '../../../types.js';
+import { controllerNameToToolName, camelToSnake } from '../../../utils.js';
 
 /**
  * Security schemes from the OpenAPI spec

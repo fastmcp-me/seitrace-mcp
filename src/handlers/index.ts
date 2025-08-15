@@ -5,12 +5,11 @@ import {
   LIST_RESOURCE_ACTIONS_TOOL,
   LIST_RESOURCES_TOOL,
 } from '../constants.js';
+import { getResourceActionSchemaHandler } from './get_resource_action_schema.js';
 import { getResourceActionSnippetHandler } from './get_resource_action_snippet.js';
 import { invokeResourceActionHandler } from './invoke_resource_action.js';
-import { getResourceActionSchemaHandler } from './get_resource_action_schema.js';
 import { listResourceActionsHandler } from './list_resource_actions.js';
 import { listResourcesHandler } from './list_resources.js';
-
 /**
  * Map of tool names to their handlers
  */
