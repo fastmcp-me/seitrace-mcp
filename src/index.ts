@@ -7,7 +7,7 @@ dotenv.config();
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 
-import { API_BASE_URL, SERVER_NAME, SERVER_VERSION } from './constants.js';
+import { SERVER_NAME, SERVER_VERSION } from './constants.js';
 import {
   ListToolsRequestSchema,
   CallToolRequestSchema,
@@ -67,11 +67,7 @@ async function main() {
 
     await server.connect(transport);
 
-    console.error(
-      `${SERVER_NAME} MCP Server (v${SERVER_VERSION}) running on stdio${
-        API_BASE_URL ? `, proxying API at ${API_BASE_URL}` : ''
-      }`
-    );
+    console.error(`${SERVER_NAME} MCP Server (v${SERVER_VERSION}) running on stdio`);
   } catch (error) {
     console.error('Error during server startup:', error);
     process.exit(1);

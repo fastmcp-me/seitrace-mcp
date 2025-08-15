@@ -11,7 +11,6 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { applySecurity } from './auth.js';
 import { GENERAL_API_BASE_URL } from './constants.js';
-import { securitySchemes } from './topics/insights/resources/openapi-definition.js';
 import { McpToolDefinition, JsonObject } from './types.js';
 
 // Supported snippet languages (explicit list used in schema and validation)
@@ -197,12 +196,15 @@ export const withMcpResponse = <T extends CallToolResult>(
  * @param toolName The name of the tool to execute
  * @param definition The tool definition
  * @param toolArgs The arguments to pass to the tool
+ * @param securitySchemes The security schemes to apply
  * @returns The result of the tool execution
  */
 export const executeApiTool = async (
   toolName: string,
   definition: McpToolDefinition,
-  toolArgs: JsonObject
+  toolArgs: JsonObject,
+  securitySchemes: any,
+  baseUrl: string
 ): Promise<CallToolResult> => {
   try {
     let validatedArgs: JsonObject;
@@ -218,7 +220,9 @@ export const executeApiTool = async (
         return McpResponse(validationErrorMessage);
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return McpResponse(`Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`);
+        return McpResponse(
+          `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+        );
       }
     }
 
@@ -247,7 +251,7 @@ export const executeApiTool = async (
       throw new Error(`Failed to resolve path parameters: ${urlPath}`);
     }
 
-    const requestUrl = `${GENERAL_API_BASE_URL}${urlPath}`;
+    const requestUrl = `${baseUrl}${urlPath}`;
 
     // For POST faucet, send validated args as the JSON body.
     if (definition.requestBodyContentType && typeof validatedArgs['requestBody'] !== 'undefined') {

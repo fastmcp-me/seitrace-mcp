@@ -1,22 +1,18 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import axios, { AxiosRequestConfig } from 'axios';
-import { ZodError } from 'zod';
 
-import { findAction, findResource, GetSnippetToolArgs, ITopic, ToolArgs } from '../base.js';
+import { findAction, findResource, GetSnippetToolArgs, ITopic } from '../base.js';
 import { endpointDefinitionMap, securitySchemes } from './resources/openapi-definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
-  formatApiError,
+  executeApiTool,
   generateSnippet,
-  getZodSchemaFromJsonSchema,
   McpResponse,
   SUPPORTED_SNIPPET_LANGUAGES,
   withMcpResponse,
 } from '../../utils.js';
-import { applySecurity } from '../../auth.js';
-import { API_BASE_URL } from '../../constants.js';
-import { McpToolDefinition, JsonObject, McpGroupedToolDefinition } from '../../types.js';
+import { McpGroupedToolDefinition } from '../../types.js';
+import { INSIGHTS_API_BASE_URL } from '../../constants.js';
 
 /**
  * Arguments for invoking an insights tool action
@@ -178,156 +174,13 @@ s   */
       }
 
       // Return the result of the API tool execution
-      return await this.executeApiTool(
+      return await executeApiTool(
         `${resource}.${action}`,
         foundAction,
         payload,
-        securitySchemes
+        securitySchemes,
+        INSIGHTS_API_BASE_URL
       );
     });
-  }
-
-  /**
-   * Handles the 'invokeResourceAction' tool request
-   * @param toolName The name of the tool
-   * @param definition The tool definition
-   * @param toolArgs The arguments provided to the tool
-   * @param allSecuritySchemes All security schemes
-   * @returns The result of the tool execution
-   */
-  private async executeApiTool(
-    toolName: string,
-    definition: McpToolDefinition,
-    toolArgs: JsonObject,
-    allSecuritySchemes: Record<string, any>
-  ): Promise<CallToolResult> {
-    try {
-      // Validate arguments against the input schema
-      let validatedArgs: JsonObject;
-      try {
-        const zodSchema = getZodSchemaFromJsonSchema(definition.inputSchema, toolName);
-        const argsToParse = typeof toolArgs === 'object' && toolArgs !== null ? toolArgs : {};
-        validatedArgs = zodSchema.parse(argsToParse);
-      } catch (error: unknown) {
-        if (error instanceof ZodError) {
-          const validationErrorMessage = `Invalid arguments for tool '${toolName}': ${error.errors
-            .map((e) => `${e.path.join('.')} (${e.code}): ${e.message}`)
-            .join(', ')}`;
-          return McpResponse(validationErrorMessage);
-        } else {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          return McpResponse(`Internal error during validation setup: ${errorMessage}`);
-        }
-      }
-
-      // Prepare URL, query parameters, headers, and request body
-      let urlPath = definition.pathTemplate!;
-      const queryParams: Record<string, any> = {};
-      const headers: Record<string, string> = { Accept: 'application/json' };
-      let requestBodyData: any = undefined;
-
-      // Apply parameters to the URL path, query, or headers
-      definition.executionParameters.forEach((param) => {
-        const value = validatedArgs[param.name];
-        if (typeof value !== 'undefined' && value !== null) {
-          if (param.in === 'path') {
-            urlPath = urlPath.replace(`{${param.name}}`, encodeURIComponent(String(value)));
-          } else if (param.in === 'query') {
-            queryParams[param.name] = value;
-          } else if (param.in === 'header') {
-            headers[param.name.toLowerCase()] = String(value);
-          }
-        }
-      });
-
-      // Ensure all path parameters are resolved
-      if (urlPath.includes('{')) {
-        throw new Error(`Failed to resolve path parameters: ${urlPath}`);
-      }
-
-      // Construct the full URL
-      const requestUrl = API_BASE_URL ? `${API_BASE_URL}${urlPath}` : urlPath;
-
-      // Handle request body if needed
-      if (
-        definition.requestBodyContentType &&
-        typeof validatedArgs['requestBody'] !== 'undefined'
-      ) {
-        requestBodyData = validatedArgs['requestBody'];
-        headers['content-type'] = definition.requestBodyContentType;
-      }
-
-      // Apply security requirements if available
-      applySecurity(definition, allSecuritySchemes, headers, queryParams);
-
-      // Prepare the axios request configuration
-      const config: AxiosRequestConfig = {
-        method: definition.method!.toUpperCase(),
-        url: requestUrl,
-        params: queryParams,
-        headers: headers,
-        ...(requestBodyData !== undefined && { data: requestBodyData }),
-      };
-
-      // Log request info to stderr (doesn't affect MCP output)
-      console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
-
-      // Execute the request
-      const response = await axios(config);
-
-      // Process and format the response
-      let responseText = '';
-      const contentType = response.headers['content-type']?.toLowerCase() || '';
-
-      // Handle JSON responses
-      if (
-        contentType.includes('application/json') &&
-        typeof response.data === 'object' &&
-        response.data !== null
-      ) {
-        try {
-          responseText = JSON.stringify(response.data);
-        } catch (e) {
-          responseText = '[Stringify Error]';
-        }
-      }
-      // Handle string responses
-      else if (typeof response.data === 'string') {
-        responseText = response.data;
-      }
-      // Handle other response types
-      else if (response.data !== undefined && response.data !== null) {
-        responseText = String(response.data);
-      }
-      // Handle empty responses
-      else {
-        responseText = `(Status: ${response.status} - No body content)`;
-      }
-
-      // Return formatted response
-      return McpResponse(`API Response (Status: ${response.status}):\n${responseText}`);
-    } catch (error: unknown) {
-      // Handle errors during execution
-      let errorMessage: string;
-
-      // Format Axios errors specially
-      if (axios.isAxiosError(error)) {
-        errorMessage = formatApiError(error);
-      }
-      // Handle standard errors
-      else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      // Handle unexpected error types
-      else {
-        errorMessage = 'Unexpected error: ' + String(error);
-      }
-
-      // Log error to stderr
-      console.error(`Error during execution of tool '${toolName}':`, errorMessage);
-
-      // Return error message to client
-      return McpResponse(errorMessage);
-    }
   }
 }

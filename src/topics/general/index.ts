@@ -1,7 +1,7 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { findAction, findResource, GetSnippetToolArgs, ITopic } from '../base.js';
-import { endpointDefinitionMap } from './resources/openapi-definition.js';
+import { endpointDefinitionMap, securitySchemes } from './resources/openapi-definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
@@ -10,6 +10,7 @@ import {
   withMcpResponse,
 } from '../../utils.js';
 import { McpGroupedToolDefinition } from '../../types.js';
+import { GENERAL_API_BASE_URL } from '../../constants.js';
 
 export interface GeneralToolArgs extends GetSnippetToolArgs {}
 
@@ -133,7 +134,13 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
           `Invalid or missing 'payload' for tool 'invokeResourceAction'. Provide an object matching the action schema.`
         );
       }
-      return await executeApiTool(`${resource}.${action}`, foundAction, payload);
+      return await executeApiTool(
+        `${resource}.${action}`,
+        foundAction,
+        payload,
+        securitySchemes,
+        GENERAL_API_BASE_URL
+      );
     });
   }
 }
