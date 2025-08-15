@@ -4,6 +4,8 @@
 export const SERVER_NAME = 'seitrace-insights';
 export const SERVER_VERSION = '1.0';
 export const API_BASE_URL = 'https://seitrace.com/insights';
+// Base URL used by the 'general' topic (e.g., faucet). This points to the workspace dev API.
+export const GENERAL_API_BASE_URL = 'https://develop-workspace-api.seitrace.com/develop';
 
 /**
  * Tool names

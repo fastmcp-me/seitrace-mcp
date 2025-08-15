@@ -47,6 +47,8 @@ Primary entrypoint: five tools that form the resource-based interface:
 
 Common resources include:
 
+**Insights**
+
 - `insights_address` — address detail, transactions, and token transfers.
 - `insights_erc20` — ERC‑20 token information, balances, transfers, and holders.
 - `insights_erc721` — ERC‑721 token information, transfers, and holders.
@@ -56,6 +58,10 @@ Common resources include:
 - `insights_ics20` — ICS‑20 (IBC fungible) transfer information.
 - `insights_native` — native token information and statistics.
 - `insights_smart_contract` — smart contract detail.
+
+**General**
+
+- `general_faucet` - enable requesting faucet for developers
 
 ## Typical Flow 🔁
 
