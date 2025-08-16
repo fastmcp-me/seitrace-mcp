@@ -2,11 +2,12 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { McpToolDefinition, JsonObject } from '../../types.js';
 import { executeApiTool } from './api_executor.js';
+import { executeGatewayTool } from './gateway_executor.js';
 import { executeRpcTool } from './rpc_executor.js';
 import { executeLcdTool } from './lcd_executor.js';
 
 // Executor registry and getter (typed params)
-export type ExecutorType = 'api' | 'rpc' | 'lcd' | 'graphql';
+export type ExecutorType = 'api' | 'rpc' | 'lcd' | 'graphql' | 'gateway';
 
 /**
  * Parameters for the API executor.
@@ -38,6 +39,7 @@ const EXECUTOR_MAP: Record<ExecutorType, Executor> = {
   graphql: async () => {
     throw new Error('UNSUPPORTED_EXECUTOR');
   },
+  gateway: (params: any) => executeGatewayTool(params.toolName, params.definition, params.toolArgs),
 };
 
 /**

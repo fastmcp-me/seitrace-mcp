@@ -372,4 +372,67 @@ export const testGeneralResources = async (client) => {
   if (faucetSnippetText !== 'SNIPPET_GENERATION_NOT_SUPPORTED') {
     throw new Error('wrong');
   }
+
+  // Associations resource should exist and expose get_associations action
+  const assocActions = await client.callTool({
+    name: 'list_resource_actions',
+    arguments: { resource: 'general_associations' },
+  });
+  const assocActionsText =
+    (assocActions.content && assocActions.content[0] && assocActions.content[0].text) || '';
+  const assocActionsParsed = JSON.parse(assocActionsText);
+  if (!assocActionsParsed.actions?.find((a) => a.name === 'get_associations')) {
+    throw new Error('general_associations missing get_associations action');
+  }
+
+  // Schema requires hashes array; chain_id/endpoint optional
+  const assocSchemaRes = await client.callTool({
+    name: 'get_resource_action_schema',
+    arguments: { resource: 'general_associations', action: 'get_associations' },
+  });
+  const assocSchemaText =
+    (assocSchemaRes.content && assocSchemaRes.content[0] && assocSchemaRes.content[0].text) || '';
+  const assocSchema = JSON.parse(assocSchemaText);
+  if (
+    !Array.isArray(assocSchema?.schema?.required) ||
+    !assocSchema.schema.required.includes('hashes') ||
+    assocSchema.schema.properties.hashes?.type !== 'array'
+  ) {
+    throw new Error('general_associations.get_associations schema invalid (hashes)');
+  }
+
+  // Invoke with pacific-1 sample hashes (public gateway); expect simplified fields
+  const assocInvoke = await client.callTool({
+    name: 'invoke_resource_action',
+    arguments: {
+      resource: 'general_associations',
+      action: 'get_associations',
+      payload: {
+        chain_id: 'arctic-1',
+        hashes: [
+          '0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18',
+          '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
+        ],
+      },
+    },
+  });
+  const assocInvokeText =
+    (assocInvoke.content && assocInvoke.content[0] && assocInvoke.content[0].text) || '';
+  let assocData;
+  try {
+    assocData = JSON.parse(assocInvokeText);
+    // dbg(`general_associations.get_associations response: ${JSON.stringify(assocData)}`);
+  } catch (e) {
+    throw new Error('general_associations.get_associations did not return JSON');
+  }
+  if (!Array.isArray(assocData) || !assocData[0]?.hash || !Array.isArray(assocData[0]?.mappings)) {
+    throw new Error('general_associations.get_associations unexpected shape');
+  }
+  // If a mapping has a CREATE_*_POINTER type, it should include pointer and pointee
+  const anyPointer = assocData
+    .flatMap((e) => e.mappings || [])
+    .find((m) => /CREATE_.*_POINTER/.test(m?.type || ''));
+  if (anyPointer && (!anyPointer.pointer || !anyPointer.pointee)) {
+    throw new Error('pointer mapping missing pointer/pointee fields');
+  }
 };
