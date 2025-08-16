@@ -91,7 +91,7 @@ export const executeRpcTool = async (
     };
 
     // Log to stderr for debugging
-    console.error(`Executing RPC tool "${toolName}": POST ${url} method=${rpcMethod}`);
+    // console.log(`Executing RPC tool "${toolName}": POST ${url} method=${rpcMethod}`);
 
     const response = await axios(config);
     const contentType = response.headers['content-type']?.toLowerCase() || '';

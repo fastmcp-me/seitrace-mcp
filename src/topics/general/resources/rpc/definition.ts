@@ -58,6 +58,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           explorer: {
             url: 'https://seitrace.com',
             variant: 'blockscout',
+            apiUrl: 'https://seitrace.com/pacific-1/api',
           },
         },
         ['atlantic-2']: {
@@ -86,11 +87,37 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           },
           explorer: {
             url: 'https://seitrace.com',
+            apiUrl: 'https://seitrace.com/atlantic-2/api',
+            variant: 'blockscout',
+          },
+        },
+        ['arctic-1']: {
+          token: {
+            symbol: 'SEI',
+            name: 'SEI',
+            logo: 'https://raw.githubusercontent.com/Seitrace/sei-assetlist/main/images/Sei.png',
+            smallestEVMUnit: 'gwei',
+            evmDecimals: 18,
+            cosmosDecimals: 6,
+            smallestCosmosUnit: 'usei',
+          },
+          cosmos: {
+            rpc: ['https://rpc-arctic-1.sei-apis.com'],
+            lcd: ['https://rest-arctic-1.sei-apis.com'],
+          },
+          evm: {
+            rpc: ['https://evm-rpc-arctic-1.sei-apis.com'],
+            chainId: 713715,
+            multicall3: '0x085F8E2f26F3A7573Eb31B06f1dC4e3Ea7601483',
+          },
+          explorer: {
+            url: 'https://seitrace.com',
+            apiUrl: 'https://seitrace.com/arctic-1/api',
             variant: 'blockscout',
           },
         },
       },
-  },
+    },
   ],
   [
     'RpcController-callEvmRpc',
@@ -101,7 +128,10 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       inputSchema: {
         type: 'object',
         properties: {
-          rpc_method: { type: 'string', description: 'JSON-RPC method name (e.g., eth_blockNumber)' },
+          rpc_method: {
+            type: 'string',
+            description: 'JSON-RPC method name (e.g., eth_blockNumber)',
+          },
           params: {
             type: 'array',
             description: 'JSON-RPC params array',
@@ -126,7 +156,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       executionParameters: [],
       securityRequirements: [],
       executor: 'rpc',
-  snippetGenerator: 'rpc',
+      snippetGenerator: 'rpc',
     },
   ],
   [
@@ -163,7 +193,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       executionParameters: [],
       securityRequirements: [],
       executor: 'rpc',
-  snippetGenerator: 'rpc',
+      snippetGenerator: 'rpc',
     },
   ],
 ]);
