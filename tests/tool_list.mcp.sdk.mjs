@@ -57,21 +57,34 @@ export const testToolList = async (client) => {
   let rootParsed;
   try {
     rootParsed = JSON.parse(rootListText);
+    dbg('Root list parsed:', rootParsed);
   } catch {
     throw new Error('list_resources did not return JSON');
   }
   if (!Array.isArray(rootParsed.resources) || !rootParsed.resources.length) {
     throw new Error('list_resources did not return resources');
   }
-  // Ensure resource list includes typical resources
+  // New shape: array of { name, description }
+  for (const r of rootParsed.resources) {
+    if (!r?.name || typeof r.name !== 'string') throw new Error('resource missing name');
+    if (!r?.description || typeof r.description !== 'string')
+      throw new Error('resource missing description');
+  }
+  // Ensure resource list includes typical resources by name
   const expectedControllers = [
     'insights_address',
     'insights_erc20',
     'insights_erc721',
+    'insights_erc1155',
     'insights_native',
+    'insights_ics20',
+    'insights_cw20',
+    'insights_cw721',
+    'insights_smart_contract',
     'general_faucet',
     'general_rpc',
   ];
-  const missing = expectedControllers.filter((n) => !rootParsed.resources.includes(n));
+  const namesOnly = rootParsed.resources.map((r) => r.name);
+  const missing = expectedControllers.filter((n) => !namesOnly.includes(n));
   if (missing.length) throw new Error(`Missing resources: ${missing.join(', ')}`);
 };

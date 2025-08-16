@@ -1,7 +1,7 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { findAction, findResource, GetSnippetToolArgs, ITopic } from '../base.js';
-import { endpointDefinitionMap } from './resources/definition.js';
+import { endpointDefinitionMap, TOPIC_KEY } from './definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
@@ -12,6 +12,9 @@ import {
 import { McpGroupedToolDefinition } from '../../types.js';
 import { GENERAL_API_BASE_URL, securitySchemes } from '../../constants.js';
 
+/**
+ * Arguments for general topic tools.
+ */
 export interface GeneralToolArgs extends GetSnippetToolArgs {}
 
 /**
@@ -21,7 +24,7 @@ export interface GeneralToolArgs extends GetSnippetToolArgs {}
  * Only one action is present: `request_faucet`.
  */
 export class GeneralTopic implements ITopic<GeneralToolArgs> {
-  public TOPIC_KEY = 'general';
+  public TOPIC_KEY = TOPIC_KEY;
   private resources: Map<string, McpGroupedToolDefinition>;
 
   /**

@@ -1,6 +1,8 @@
 import { ITopic } from './base.js';
 import { InsightsTopic } from './insights/index.js';
 import { GeneralTopic } from './general/index.js';
+import { INSIGHTS_RESOURCE_DESCRIPTION_MAP } from './insights/definition.js';
+import { GENERAL_RESOURCE_DESCRIPTION_MAP } from './general/definition.js';
 
 /**
  * Declare topic instance.
@@ -26,4 +28,12 @@ export const AVAILABLE_TOPICS: ITopic[] = [insights, general];
 export const TOPIC_KEY_MAP: Record<string, ITopic> = {
   [insights.TOPIC_KEY]: insights,
   [general.TOPIC_KEY]: general,
+};
+
+/**
+ * Map resource names to their descriptions.
+ */
+export const RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
+  ...INSIGHTS_RESOURCE_DESCRIPTION_MAP,
+  ...GENERAL_RESOURCE_DESCRIPTION_MAP,
 };

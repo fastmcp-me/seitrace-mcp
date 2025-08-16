@@ -16,6 +16,7 @@ import {
 } from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
 import { INSIGHTS_API_BASE_URL, securitySchemes } from '../../constants.js';
+import { TOPIC_KEY } from './definition.js';
 
 /**
  * Arguments for invoking an insights tool action
@@ -29,7 +30,7 @@ export class InsightsTopic implements ITopic<InsightsToolArgs> {
   /**
    * The unique key for the topic
    */
-  public TOPIC_KEY = 'insights';
+  public TOPIC_KEY = TOPIC_KEY;
 
   /**
    * The map of available resources for the topic
@@ -126,7 +127,9 @@ s   */
       // Prepare openapi specs
       const fileName = fileURLToPath(import.meta.url);
       const dirName = NodePath.dirname(fileName);
-      const specs = fs.readFileSync(NodePath.join(dirName, './resources/api-specs.json')).toString();
+      const specs = fs
+        .readFileSync(NodePath.join(dirName, './resources/api-specs.json'))
+        .toString();
 
       // Generate code snippet
       const snippet = generateSnippet(foundAction.pathTemplate!, language!, specs);

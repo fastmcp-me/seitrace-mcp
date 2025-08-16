@@ -1,5 +1,9 @@
 import { McpToolDefinition } from '../../../../types.js';
 
+// Short, LLM-friendly description of this resource
+export const RESOURCE_DESCRIPTION =
+  'Request test native SEI on arctic-1(devnet) or atlantic-2(testnet) (rate-limited).';
+
 /**
  * Faucet endpoint definition
  * Controller/action key format: <ControllerName>-<ActionNameCamel>

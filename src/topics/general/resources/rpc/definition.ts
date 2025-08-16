@@ -1,5 +1,9 @@
 import { McpToolDefinition } from '../../../../types.js';
 
+// Short, LLM-friendly description of this resource
+export const RESOURCE_DESCRIPTION =
+  'Get general information about Sei (rpcs, lcds, explorers), and making rpc calls to the Sei network.';
+
 /**
  * RPC connection details for developers (local/static action)
  * This resource does not call a remote API; instead it returns
@@ -28,6 +32,15 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       // Static response payload with connection details
       staticResponse: {
         ['pacific-1']: {
+          token: {
+            symbol: 'SEI',
+            name: 'SEI',
+            logo: 'https://raw.githubusercontent.com/Seitrace/sei-assetlist/main/images/Sei.png',
+            smallestEVMUnit: 'gwei',
+            evmDecimals: 18,
+            cosmosDecimals: 6,
+            smallestCosmosUnit: 'usei',
+          },
           cosmos: {
             rpc: ['https://rpc.sei-apis.com'],
             lcd: ['https://rest.sei-apis.com'],
@@ -48,6 +61,15 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           },
         },
         ['atlantic-2']: {
+          token: {
+            symbol: 'SEI',
+            name: 'SEI',
+            logo: 'https://raw.githubusercontent.com/Seitrace/sei-assetlist/main/images/Sei.png',
+            smallestEVMUnit: 'gwei',
+            evmDecimals: 18,
+            cosmosDecimals: 6,
+            smallestCosmosUnit: 'usei',
+          },
           cosmos: {
             rpc: ['https://rpc-testnet.sei-apis.com'],
             lcd: ['https://rest-testnet.sei-apis.com'],
