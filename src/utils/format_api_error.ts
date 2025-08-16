@@ -1,4 +1,6 @@
-import { AxiosError } from 'axios';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import axios from 'axios';
+import { McpResponse } from './index.js';
 
 /**
  * Formats API errors for better readability
@@ -6,7 +8,7 @@ import { AxiosError } from 'axios';
  * @param error Axios error
  * @returns Formatted error message
  */
-export function formatApiError(error: AxiosError): string {
+export function formatApiError(error: any): CallToolResult {
   let message = 'API request failed.';
   if (error.response) {
     message = `API Error: Status ${error.response.status} (${
@@ -36,5 +38,14 @@ export function formatApiError(error: AxiosError): string {
   } else {
     message += `API Request Setup Error: ${error.message}`;
   }
-  return message;
+  let errorMessage: string;
+  if (axios.isAxiosError(error)) {
+    errorMessage = message;
+  } else if (error instanceof Error) {
+    errorMessage = error.message;
+  } else {
+    errorMessage = 'Unexpected error: ' + String(error);
+  }
+
+  return McpResponse(errorMessage);
 }

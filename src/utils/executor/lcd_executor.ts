@@ -5,6 +5,7 @@ import { McpToolDefinition, JsonObject } from '../../types.js';
 import { McpResponse } from '../mcp_response.js';
 import { getZodSchemaFromJsonSchema } from '../schema.js';
 import { endpointDefinitionMap as rpcEndpointMap } from '../../topics/general/resources/rpc_lcd/definition.js';
+import { formatApiError, formatApiResponse } from '../index.js';
 
 export const executeLcdTool = async (
   toolName: string,
@@ -44,7 +45,8 @@ export const executeLcdTool = async (
           "Missing 'endpoint' or 'chain_id'. Provide a custom endpoint or one of: pacific-1, atlantic-2."
         );
       }
-      const conn = (rpcEndpointMap.get('RpcLcdController-getConnectionDetails') as any)?.staticResponse;
+      const conn = (rpcEndpointMap.get('RpcLcdController-getConnectionDetails') as any)
+        ?.staticResponse;
       const chainCfg = conn?.[chainId];
       if (!chainCfg) {
         return McpResponse(`Unknown chain_id '${chainId}'. Expected pacific-1 or atlantic-2.`);
@@ -57,7 +59,7 @@ export const executeLcdTool = async (
     }
 
     const path = String((validatedArgs as any)['path'] || '/');
-    const method = String(((validatedArgs as any)['method'] || 'GET')).toUpperCase();
+    const method = String((validatedArgs as any)['method'] || 'GET').toUpperCase();
     const query = (validatedArgs as any)['query'] || {};
     const body = (validatedArgs as any)['body'];
     const base = baseUrl.replace(/\/$/, '');
@@ -72,26 +74,8 @@ export const executeLcdTool = async (
     };
 
     const response = await axios(config);
-    const contentType = response.headers['content-type']?.toLowerCase() || '';
-    let responseText = '';
-    if (contentType.includes('application/json')) {
-      try {
-        responseText = JSON.stringify(response.data);
-      } catch {
-        responseText = '[Stringify Error]';
-      }
-    } else if (typeof response.data === 'string') {
-      responseText = response.data;
-    } else {
-      responseText = String(response.data);
-    }
-
-    return McpResponse(responseText);
+    return formatApiResponse(response);
   } catch (error: any) {
-    const msg = error?.response?.data
-      ? JSON.stringify(error.response.data)
-      : error?.message || String(error);
-    console.error(`Error during LCD execution of '${toolName}':`, msg);
-    return McpResponse(msg);
+    return formatApiError(error);
   }
 };

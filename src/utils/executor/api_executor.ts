@@ -5,8 +5,8 @@ import { ZodError } from 'zod';
 import { applySecurity } from '../../auth.js';
 import { McpToolDefinition, JsonObject } from '../../types.js';
 import { McpResponse } from '../mcp_response.js';
-import { formatApiError } from '../format_api_error.js';
 import { getZodSchemaFromJsonSchema } from '../schema.js';
+import { formatApiError, formatApiResponse } from '../index.js';
 
 /**
  * Executes an API tool with the given arguments
@@ -90,43 +90,9 @@ export const executeApiTool = async (
       ...(requestBodyData !== undefined && { data: requestBodyData }),
     };
 
-    // Log request info to stderr (doesn't affect MCP output)
-    console.error(`Executing tool "${toolName}": ${config.method} ${config.url}`);
-
     const response = await axios(config);
-
-    let responseText = '';
-    const contentType = response.headers['content-type']?.toLowerCase() || '';
-
-    if (
-      contentType.includes('application/json') &&
-      typeof response.data === 'object' &&
-      response.data !== null
-    ) {
-      try {
-        responseText = JSON.stringify(response.data);
-      } catch (e) {
-        responseText = '[Stringify Error]';
-      }
-    } else if (typeof response.data === 'string') {
-      responseText = response.data;
-    } else if (response.data !== undefined && response.data !== null) {
-      responseText = String(response.data);
-    } else {
-      responseText = `(Status: ${response.status} - No body content)`;
-    }
-
-    return McpResponse(`API Response (Status: ${response.status}):\n${responseText}`);
+    return formatApiResponse(response);
   } catch (error: unknown) {
-    let errorMessage: string;
-    if (axios.isAxiosError(error)) {
-      errorMessage = formatApiError(error);
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = 'Unexpected error: ' + String(error);
-    }
-    console.error(`Error during execution of tool '${toolName}':`, errorMessage);
-    return McpResponse(errorMessage);
+    return formatApiError(error);
   }
 };
