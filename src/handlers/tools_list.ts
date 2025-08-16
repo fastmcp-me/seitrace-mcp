@@ -81,6 +81,7 @@ export const toolListHandler = () => {
         resource: { type: 'string' },
         action: { type: 'string' },
         language: { type: 'string' },
+  payload: { type: 'object', additionalProperties: true, description: 'Optional example payload for snippet generation (e.g., rpc_method, params, endpoint).' },
       },
       required: ['resource', 'action', 'language'],
       additionalProperties: false,

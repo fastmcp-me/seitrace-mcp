@@ -2,6 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { McpToolDefinition, JsonObject } from '../../types.js';
 import { executeApiTool } from './api_executor.js';
+import { executeRpcTool } from './rpc_executor.js';
 
 // Executor registry and getter (typed params)
 export type ExecutorType = 'api' | 'rpc' | 'graphql';
@@ -31,9 +32,7 @@ const EXECUTOR_MAP: Record<ExecutorType, Executor> = {
       params.securitySchemes,
       params.baseUrl
     ),
-  rpc: async () => {
-    throw new Error('UNSUPPORTED_EXECUTOR');
-  },
+  rpc: (params: any) => executeRpcTool(params.toolName, params.definition, params.toolArgs),
   graphql: async () => {
     throw new Error('UNSUPPORTED_EXECUTOR');
   },

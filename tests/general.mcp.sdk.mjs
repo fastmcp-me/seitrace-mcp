@@ -44,9 +44,11 @@ export const testGeneralResources = async (client) => {
   const rpcActionsParsed = JSON.parse(rpcActionsText);
   if (
     !Array.isArray(rpcActionsParsed.actions) ||
-    !rpcActionsParsed.actions.find((a) => a.name === 'get_connection_details')
+    !rpcActionsParsed.actions.find((a) => a.name === 'get_connection_details') ||
+    !rpcActionsParsed.actions.find((a) => a.name === 'call_evm_rpc') ||
+    !rpcActionsParsed.actions.find((a) => a.name === 'call_cosmos_rpc')
   ) {
-    throw new Error('general_rpc missing get_connection_details action');
+    throw new Error('general_rpc missing required actions');
   }
 
   // Verify rpc schema requires no inputs
@@ -62,6 +64,157 @@ export const testGeneralResources = async (client) => {
   }
   if (Array.isArray(rpcSchema.schema.required) && rpcSchema.schema.required.length) {
     throw new Error('general_rpc.get_connection_details should not require any fields');
+  }
+
+  // Verify schemas for call_evm_rpc and call_cosmos_rpc
+  const evmSchemaRes = await client.callTool({
+    name: 'get_resource_action_schema',
+    arguments: { resource: 'general_rpc', action: 'call_evm_rpc' },
+  });
+  const evmSchemaText =
+    (evmSchemaRes.content && evmSchemaRes.content[0] && evmSchemaRes.content[0].text) || '';
+  const evmSchema = JSON.parse(evmSchemaText);
+  if (
+    !evmSchema?.schema?.properties?.rpc_method ||
+    !evmSchema?.schema?.properties?.params ||
+    !evmSchema?.schema?.properties?.chain_id ||
+    !evmSchema?.schema?.properties?.endpoint ||
+    !Array.isArray(evmSchema?.schema?.required) ||
+    !evmSchema.schema.required.includes('rpc_method')
+  ) {
+    throw new Error('general_rpc.call_evm_rpc schema missing expected fields');
+  }
+  const cosmosSchemaRes = await client.callTool({
+    name: 'get_resource_action_schema',
+    arguments: { resource: 'general_rpc', action: 'call_cosmos_rpc' },
+  });
+  const cosmosSchemaText =
+    (cosmosSchemaRes.content && cosmosSchemaRes.content[0] && cosmosSchemaRes.content[0].text) ||
+    '';
+  const cosmosSchema = JSON.parse(cosmosSchemaText);
+  if (
+    !cosmosSchema?.schema?.properties?.rpc_method ||
+    !cosmosSchema?.schema?.properties?.params ||
+    !cosmosSchema?.schema?.properties?.chain_id ||
+    !cosmosSchema?.schema?.properties?.endpoint ||
+    !Array.isArray(cosmosSchema?.schema?.required) ||
+    !cosmosSchema.schema.required.includes('rpc_method')
+  ) {
+    throw new Error('general_rpc.call_cosmos_rpc schema missing expected fields');
+  }
+
+  // Snippet generation for RPC actions (node + shell)
+  const evmNodeSnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { resource: 'general_rpc', action: 'call_evm_rpc', language: 'node' },
+  });
+  const evmNodeSnippetText =
+    (evmNodeSnippetRes.content &&
+      evmNodeSnippetRes.content[0] &&
+      evmNodeSnippetRes.content[0].text) ||
+    '';
+  let evmNodeSnippetParsed;
+  try {
+    evmNodeSnippetParsed = JSON.parse(evmNodeSnippetText);
+  } catch {
+    throw new Error('general_rpc.call_evm_rpc node snippet did not return JSON');
+  }
+  if (
+    !evmNodeSnippetParsed?.snippet ||
+    !/eth_blockNumber|<rpc_method>/.test(evmNodeSnippetParsed.snippet)
+  ) {
+    throw new Error('general_rpc.call_evm_rpc node snippet missing method');
+  }
+
+  const evmShellSnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { resource: 'general_rpc', action: 'call_evm_rpc', language: 'shell' },
+  });
+  const evmShellSnippetText =
+    (evmShellSnippetRes.content &&
+      evmShellSnippetRes.content[0] &&
+      evmShellSnippetRes.content[0].text) ||
+    '';
+  // dbg('getResourceActionSnippet result:', evmShellSnippetText);
+  const evmShellSnippetParsed = JSON.parse(evmShellSnippetText);
+  if (!evmShellSnippetParsed?.snippet || !/curl --request POST/.test(evmShellSnippetParsed.snippet)) {
+    throw new Error('general_rpc.call_evm_rpc shell snippet missing curl');
+  }
+
+  const cosmosNodeSnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { resource: 'general_rpc', action: 'call_cosmos_rpc', language: 'node' },
+  });
+  const cosmosNodeSnippetText =
+    (cosmosNodeSnippetRes.content &&
+      cosmosNodeSnippetRes.content[0] &&
+      cosmosNodeSnippetRes.content[0].text) ||
+    '';
+  const cosmosNodeSnippetParsed = JSON.parse(cosmosNodeSnippetText);
+  if (
+    !cosmosNodeSnippetParsed?.snippet ||
+    !/status|<rpc_method>/.test(cosmosNodeSnippetParsed.snippet)
+  ) {
+    throw new Error('general_rpc.call_cosmos_rpc node snippet missing method');
+  }
+
+  // Payload-driven snippet: method/params should appear in snippet
+  const payloadSnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: {
+      resource: 'general_rpc',
+      action: 'call_evm_rpc',
+      language: 'node',
+      payload: {
+        rpc_method: 'eth_getBalance',
+        params: ['0x0000000000000000000000000000000000000000', 'latest'],
+      },
+    },
+  });
+  const payloadSnippetText =
+    (payloadSnippetRes.content &&
+      payloadSnippetRes.content[0] &&
+      payloadSnippetRes.content[0].text) ||
+    '';
+  const payloadSnippetParsed = JSON.parse(payloadSnippetText);
+  // dbg('Payload snippet:', payloadSnippetParsed);
+  if (
+    !payloadSnippetParsed?.snippet ||
+    !/eth_getBalance/.test(payloadSnippetParsed.snippet) ||
+    !/\[\s*'0x0000000000000000000000000000000000000000',\s*'latest'\s*\]/.test(
+      payloadSnippetParsed.snippet
+    )
+  ) {
+    throw new Error('RPC payload-driven node snippet missing method or params');
+  }
+
+  // Unsupported language should error
+  const badSnippet = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { resource: 'general_rpc', action: 'call_evm_rpc', language: 'madeup' },
+  });
+  const badSnippetText =
+    (badSnippet.content && badSnippet.content[0] && badSnippet.content[0].text) || '';
+  if (!/Unsupported or missing language/i.test(badSnippetText)) {
+    throw new Error('Expected unsupported language error for RPC snippet');
+  }
+
+  // Negative invoke: missing chain_id and endpoint should not hit network and should error clearly
+  const evmInvokeMissingRes = await client.callTool({
+    name: 'invoke_resource_action',
+    arguments: {
+      resource: 'general_rpc',
+      action: 'call_evm_rpc',
+      payload: { rpc_method: 'eth_blockNumber' },
+    },
+  });
+  const evmInvokeMissingText =
+    (evmInvokeMissingRes.content &&
+      evmInvokeMissingRes.content[0] &&
+      evmInvokeMissingRes.content[0].text) ||
+    '';
+  if (!/Missing 'endpoint' or 'chain_id'/i.test(evmInvokeMissingText)) {
+    throw new Error('Expected missing endpoint/chain_id error for call_evm_rpc');
   }
 
   // Invoke rpc get_connection_details and assert structure

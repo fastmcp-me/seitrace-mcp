@@ -90,6 +90,80 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           },
         },
       },
-    } as McpToolDefinition & { staticResponse: any },
+  },
+  ],
+  [
+    'RpcController-callEvmRpc',
+    {
+      name: 'RpcController-callEvmRpc',
+      description:
+        'Perform a JSON-RPC call against the Sei EVM endpoint. Provide rpc_method and optional params; specify chain_id or an explicit endpoint override.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          rpc_method: { type: 'string', description: 'JSON-RPC method name (e.g., eth_blockNumber)' },
+          params: {
+            type: 'array',
+            description: 'JSON-RPC params array',
+            items: {},
+            default: [],
+          },
+          chain_id: {
+            type: 'string',
+            description: 'Target chain ID if no endpoint override provided',
+            enum: ['pacific-1', 'atlantic-2'],
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional EVM RPC endpoint override. If provided, chain_id is ignored for routing.',
+          },
+        },
+        required: ['rpc_method'],
+        additionalProperties: false,
+      },
+      method: 'rpc',
+      executionParameters: [],
+      securityRequirements: [],
+      executor: 'rpc',
+  snippetGenerator: 'rpc',
+    },
+  ],
+  [
+    'RpcController-callCosmosRpc',
+    {
+      name: 'RpcController-callCosmosRpc',
+      description:
+        'Perform a JSON-RPC call against the Sei Cosmos (Tendermint) RPC endpoint. Provide rpc_method and optional params; specify chain_id or an explicit endpoint override.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          rpc_method: { type: 'string', description: 'JSON-RPC method name (e.g., status)' },
+          params: {
+            type: 'array',
+            description: 'JSON-RPC params array',
+            items: {},
+            default: [],
+          },
+          chain_id: {
+            type: 'string',
+            description: 'Target chain ID if no endpoint override provided',
+            enum: ['pacific-1', 'atlantic-2'],
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional Cosmos RPC endpoint override. If provided, chain_id is ignored for routing.',
+          },
+        },
+        required: ['rpc_method'],
+        additionalProperties: false,
+      },
+      method: 'rpc',
+      executionParameters: [],
+      securityRequirements: [],
+      executor: 'rpc',
+  snippetGenerator: 'rpc',
+    },
   ],
 ]);

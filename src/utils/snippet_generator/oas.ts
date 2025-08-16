@@ -1,7 +1,6 @@
 import oasToSnippet from '@readme/oas-to-snippet';
 import { getSupportedLanguages, Language } from '@readme/oas-to-snippet/languages';
 import Oas from 'oas';
-
 // Supported snippet languages (explicit list used in schema and validation)
 export const SUPPORTED_SNIPPET_LANGUAGES = Object.keys(getSupportedLanguages());
 

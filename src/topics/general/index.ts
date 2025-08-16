@@ -5,13 +5,14 @@ import { endpointDefinitionMap, TOPIC_KEY } from './definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
+  generateRpcSnippet,
   getExecutor,
   McpResponse,
+  SUPPORTED_RPC_SNIPPET_LANGUAGES,
   withMcpResponse,
 } from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
 import { GENERAL_API_BASE_URL, securitySchemes } from '../../constants.js';
-
 /**
  * Arguments for general topic tools.
  */
@@ -92,8 +93,32 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
    * @param toolArgs Object containing `resource`, `action`, and `language`.
    * @returns MCP text content with `{ resource, action, language, snippet }` JSON.
    */
-  public getResourceActionSnippet(_: GeneralToolArgs) {
-    return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+  public getResourceActionSnippet(toolArgs: GeneralToolArgs) {
+    const { resource, action, language, payload } = toolArgs;
+    return withMcpResponse<CallToolResult>(async () => {
+      const foundAction = findAction(this.getResources(), resource, action!);
+      const generator = (foundAction as any).snippetGenerator;
+      if (generator === 'rpc') {
+        if (
+          typeof language !== 'string' ||
+          !SUPPORTED_RPC_SNIPPET_LANGUAGES.includes(language as any)
+        ) {
+          return McpResponse(
+            `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_RPC_SNIPPET_LANGUAGES.join(
+              ', '
+            )}`
+          );
+        }
+        const snippet = generateRpcSnippet(
+          foundAction as any,
+          action!,
+          language as any,
+          payload as any
+        );
+        return McpResponse(JSON.stringify({ resource, action, language, snippet }));
+      }
+      return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+    });
   }
 
   /**

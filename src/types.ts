@@ -21,8 +21,8 @@ export interface McpToolDefinition {
   staticResponse?: any;
   // Execution handler type: 'api' uses HTTP, 'rpc' or 'graphql' (future), or null for static
   executor?: 'api' | 'rpc' | 'graphql' | null;
-  // Snippet generator type: 'oas' for OpenAPI-based snippet or null for unsupported
-  snippetGenerator?: 'oas' | null;
+  // Snippet generator type: 'oas' for OpenAPI-based snippet, 'rpc' for JSON-RPC snippets, or null for unsupported
+  snippetGenerator?: 'oas' | 'rpc' | null;
 }
 
 /**
