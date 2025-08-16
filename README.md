@@ -1,8 +1,8 @@
 <img src="https://assets.seitrace.com/seitrace-mcp.gif?v=10" width="1280"></img>
 
-# Seitrace Insights MCP Server 🚀
+# Seitrace MCP 🚀
 
-A Model Context Protocol (MCP) server that exposes the Seitrace Insights API as model-friendly tools. It now advertises five focused tools that implement a resource-based interface so LLMs can discover resources, list actions, fetch schemas, invoke them, and generate code snippets. 
+The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 ## Available tools 🧰
 
@@ -134,11 +134,10 @@ SEITRACE_API_KEY=your_key_here npm run test:e2e
 
 ## Troubleshooting 🛠️
 
-- Validation errors: If `invokeResourceAction` returns “Invalid arguments…”, call `getResourceActionSchema` and ensure your `payload` follows the schema.
-- Unknown action: You’ll get an error that includes the available actions. Use `listResourceActions` to discover the right name.
-- 401/403 responses: Set `SECRET_APIKEY` with a valid Seitrace key.
-- Network issues: Ensure `API_BASE_URL` is reachable from your environment.
-- Node version: Use Node 20+ as required in `package.json`.
+Make sure you run our e2e test to see the common errors we covered.
+
+- E2E: `npm run test:e2e` (optional `E2E_DEBUG=1` for `[E2E]` logs).
+- Node: Use v20+.
 
 ## Contributing 🤝
 
