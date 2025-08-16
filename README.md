@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server that exposes the Seitrace Insights API as 
 
 ## Available tools 🧰
 
-Primary entrypoint: five tools that form the resource-based interface:
+**Five tools that form the resource-based interface:**
 
 - `list_resources` — list available resources
 - `list_resource_actions` — list actions for a resource
@@ -14,9 +14,7 @@ Primary entrypoint: five tools that form the resource-based interface:
 - `invoke_resource_action` — invoke an action with payload
 - `get_resource_action_snippet` — generate a code snippet to perform a resource action in the specified language, for example, a javascript snippet to call the action with the required parameters
 
-**Flow: list resources -> list actions for a resource -> get action schema -> invoke action or generate a code snippet.**
-
-Common resources include:
+**Supported resources**
 
 **Insights**
 
