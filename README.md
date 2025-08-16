@@ -4,35 +4,6 @@
 
 A Model Context Protocol (MCP) server that exposes the Seitrace Insights API as model-friendly tools. It now advertises five focused tools that implement a resource-based interface so LLMs can discover resources, list actions, fetch schemas, invoke them, and generate code snippets. 
 
-## Highlights ✨
-
-What MCP provides to end users and assistants:
-
-- Natural‑language access to Seitrace insights. The assistant performs API calls on your behalf.
-- Self‑describing tool flow: enumerate actions, retrieve the input schema, then invoke.
-- Input validation and clear error messages using per‑action JSON Schemas.
-- Concise discovery: minimal list output; detailed payloads only when invoking actions.
-- Integration with MCP‑enabled VS Code extensions (e.g., Continue, Cline).
-- Simple, secure API key handling via environment variables (sent as `x-api-key`).
-- Quick start via npx: `npx -y @seitrace/mcp`.
-## Getting started
-
-Make sure you obtain an API Key for free [here](https://seitrace.com/insights)
-
-## Use with VSCode variants, Claude Desktop / Cursor 💻
-
-See [mcp](./mcp/)
-
-## Using with an MCP Client 🤝
-
-Configure your MCP client to launch the compiled server binary:
-
-- Command: `npx`
-- Args:`["-y", "@seitrace/mcp"]`
-- Env: `SECRET_APIKEY`, `API_BASE_URL` (optional) 
-
-Once connected, the client will call `tools/list`, which returns exactly five tools representing the resource interface.
-
 ## Available tools 🧰
 
 Primary entrypoint: five tools that form the resource-based interface:
@@ -62,6 +33,37 @@ Common resources include:
 **General**
 
 - `general_faucet` - enable requesting faucet for developers
+- `general_rpc` - enable general rpc inquiries for the agents, and execute the rpc requests based on the demands
+
+## Getting started
+
+Make sure you obtain an API Key for free [here](https://seitrace.com/insights)
+
+## Use with VSCode variants, Claude Desktop / Cursor 💻
+
+See [mcp](./mcp/)
+
+## Using with an MCP Client 🤝
+
+Configure your MCP client to launch the compiled server binary:
+
+- Command: `npx`
+- Args:`["-y", "@seitrace/mcp"]`
+- Env: `SECRET_APIKEY`, `API_BASE_URL` (optional) 
+
+Once connected, the client will call `tools/list`, which returns exactly five tools representing the resource interface.
+
+## Highlights ✨
+
+What MCP provides to end users and assistants:
+
+- Natural‑language access to Seitrace insights. The assistant performs API calls on your behalf.
+- Self‑describing tool flow: enumerate actions, retrieve the input schema, then invoke.
+- Input validation and clear error messages using per‑action JSON Schemas.
+- Concise discovery: minimal list output; detailed payloads only when invoking actions.
+- Integration with MCP‑enabled VS Code extensions (e.g., Continue, Cline).
+- Simple, secure API key handling via environment variables (sent as `x-api-key`).
+- Quick start via npx: `npx -y @seitrace/mcp`.
 
 ## Typical Flow 🔁
 
