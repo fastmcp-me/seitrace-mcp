@@ -19,7 +19,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 **General**
 
 - `general_faucet` - enable requesting faucet for developers
-- `general_rpc` - enable general rpc inquiries for the agents, and execute the rpc requests based on the demands
+- `general_rpc_lcd` - enable general rpc/lcd inquiries for the agents, and execute the rpc/lcd requests based on the demands
 
 **Insights**
 

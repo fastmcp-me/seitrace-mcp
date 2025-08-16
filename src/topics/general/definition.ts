@@ -5,7 +5,7 @@ import {
 import {
   endpointDefinitionMap as rpcEndpoints,
   RESOURCE_DESCRIPTION as RPC_DESC,
-} from './resources/rpc/definition.js';
+} from './resources/rpc_lcd/definition.js';
 
 /**
  * General topic key.
@@ -21,5 +21,5 @@ export const endpointDefinitionMap = new Map([
 // Resource-level descriptions for the General topic
 export const GENERAL_RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
   [`${TOPIC_KEY}_faucet`]: FAUCET_DESC,
-  [`${TOPIC_KEY}_rpc`]: RPC_DESC,
+  [`${TOPIC_KEY}_rpc_lcd`]: RPC_DESC,
 };

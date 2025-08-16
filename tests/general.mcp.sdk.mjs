@@ -17,6 +17,24 @@ export const testGeneralResources = async (client) => {
     throw new Error('general_faucet missing request_faucet action');
   }
 
+  // Verify schema for call_cosmos_lcd
+  const lcdSchemaRes = await client.callTool({
+    name: 'get_resource_action_schema',
+    arguments: { resource: 'general_rpc_lcd', action: 'call_cosmos_lcd' },
+  });
+  const lcdSchemaText =
+    (lcdSchemaRes.content && lcdSchemaRes.content[0] && lcdSchemaRes.content[0].text) || '';
+  const lcdSchema = JSON.parse(lcdSchemaText);
+  if (
+    !lcdSchema?.schema?.properties?.path ||
+    !lcdSchema?.schema?.properties?.chain_id ||
+    !lcdSchema?.schema?.properties?.endpoint ||
+    !Array.isArray(lcdSchema?.schema?.required) ||
+    !lcdSchema.schema.required.includes('path')
+  ) {
+    throw new Error('general_rpc_lcd.call_cosmos_lcd schema missing expected fields');
+  }
+
   // Verify faucet schema contains wallet_address and chain_id
   const faucetSchemaRes = await client.callTool({
     name: 'get_resource_action_schema',
@@ -33,11 +51,11 @@ export const testGeneralResources = async (client) => {
     throw new Error('general_faucet.request_faucet schema missing wallet_address or chain_id');
   }
 
-  // Additional checks for the new general_rpc resource
+  // Additional checks for the new general_rpc_lcd resource
   // Verify actions include get_connection_details
   const rpcActionsRes = await client.callTool({
     name: 'list_resource_actions',
-    arguments: { resource: 'general_rpc' },
+    arguments: { resource: 'general_rpc_lcd' },
   });
   const rpcActionsText =
     (rpcActionsRes.content && rpcActionsRes.content[0] && rpcActionsRes.content[0].text) || '';
@@ -48,28 +66,28 @@ export const testGeneralResources = async (client) => {
     !rpcActionsParsed.actions.find((a) => a.name === 'call_evm_rpc') ||
     !rpcActionsParsed.actions.find((a) => a.name === 'call_cosmos_rpc')
   ) {
-    throw new Error('general_rpc missing required actions');
+    throw new Error('general_rpc_lcd missing required actions');
   }
 
   // Verify rpc schema requires no inputs
   const rpcSchemaRes = await client.callTool({
     name: 'get_resource_action_schema',
-    arguments: { resource: 'general_rpc', action: 'get_connection_details' },
+    arguments: { resource: 'general_rpc_lcd', action: 'get_connection_details' },
   });
   const rpcSchemaText =
     (rpcSchemaRes.content && rpcSchemaRes.content[0] && rpcSchemaRes.content[0].text) || '';
   const rpcSchema = JSON.parse(rpcSchemaText);
   if (!rpcSchema?.schema || rpcSchema.schema.type !== 'object') {
-    throw new Error('general_rpc.get_connection_details schema missing or not an object');
+    throw new Error('general_rpc_lcd.get_connection_details schema missing or not an object');
   }
   if (Array.isArray(rpcSchema.schema.required) && rpcSchema.schema.required.length) {
-    throw new Error('general_rpc.get_connection_details should not require any fields');
+    throw new Error('general_rpc_lcd.get_connection_details should not require any fields');
   }
 
   // Verify schemas for call_evm_rpc and call_cosmos_rpc
   const evmSchemaRes = await client.callTool({
     name: 'get_resource_action_schema',
-    arguments: { resource: 'general_rpc', action: 'call_evm_rpc' },
+    arguments: { resource: 'general_rpc_lcd', action: 'call_evm_rpc' },
   });
   const evmSchemaText =
     (evmSchemaRes.content && evmSchemaRes.content[0] && evmSchemaRes.content[0].text) || '';
@@ -82,11 +100,11 @@ export const testGeneralResources = async (client) => {
     !Array.isArray(evmSchema?.schema?.required) ||
     !evmSchema.schema.required.includes('rpc_method')
   ) {
-    throw new Error('general_rpc.call_evm_rpc schema missing expected fields');
+    throw new Error('general_rpc_lcd.call_evm_rpc schema missing expected fields');
   }
   const cosmosSchemaRes = await client.callTool({
     name: 'get_resource_action_schema',
-    arguments: { resource: 'general_rpc', action: 'call_cosmos_rpc' },
+    arguments: { resource: 'general_rpc_lcd', action: 'call_cosmos_rpc' },
   });
   const cosmosSchemaText =
     (cosmosSchemaRes.content && cosmosSchemaRes.content[0] && cosmosSchemaRes.content[0].text) ||
@@ -100,13 +118,13 @@ export const testGeneralResources = async (client) => {
     !Array.isArray(cosmosSchema?.schema?.required) ||
     !cosmosSchema.schema.required.includes('rpc_method')
   ) {
-    throw new Error('general_rpc.call_cosmos_rpc schema missing expected fields');
+    throw new Error('general_rpc_lcd.call_cosmos_rpc schema missing expected fields');
   }
 
   // Snippet generation for RPC actions (node + shell)
   const evmNodeSnippetRes = await client.callTool({
     name: 'get_resource_action_snippet',
-    arguments: { resource: 'general_rpc', action: 'call_evm_rpc', language: 'node' },
+    arguments: { resource: 'general_rpc_lcd', action: 'call_evm_rpc', language: 'node' },
   });
   const evmNodeSnippetText =
     (evmNodeSnippetRes.content &&
@@ -117,18 +135,18 @@ export const testGeneralResources = async (client) => {
   try {
     evmNodeSnippetParsed = JSON.parse(evmNodeSnippetText);
   } catch {
-    throw new Error('general_rpc.call_evm_rpc node snippet did not return JSON');
+    throw new Error('general_rpc_lcd.call_evm_rpc node snippet did not return JSON');
   }
   if (
     !evmNodeSnippetParsed?.snippet ||
     !/eth_blockNumber|<rpc_method>/.test(evmNodeSnippetParsed.snippet)
   ) {
-    throw new Error('general_rpc.call_evm_rpc node snippet missing method');
+    throw new Error('general_rpc_lcd.call_evm_rpc node snippet missing method');
   }
 
   const evmShellSnippetRes = await client.callTool({
     name: 'get_resource_action_snippet',
-    arguments: { resource: 'general_rpc', action: 'call_evm_rpc', language: 'shell' },
+    arguments: { resource: 'general_rpc_lcd', action: 'call_evm_rpc', language: 'shell' },
   });
   const evmShellSnippetText =
     (evmShellSnippetRes.content &&
@@ -137,13 +155,16 @@ export const testGeneralResources = async (client) => {
     '';
   // dbg('getResourceActionSnippet result:', evmShellSnippetText);
   const evmShellSnippetParsed = JSON.parse(evmShellSnippetText);
-  if (!evmShellSnippetParsed?.snippet || !/curl --request POST/.test(evmShellSnippetParsed.snippet)) {
-    throw new Error('general_rpc.call_evm_rpc shell snippet missing curl');
+  if (
+    !evmShellSnippetParsed?.snippet ||
+    !/curl --request POST/.test(evmShellSnippetParsed.snippet)
+  ) {
+    throw new Error('general_rpc_lcd.call_evm_rpc shell snippet missing curl');
   }
 
   const cosmosNodeSnippetRes = await client.callTool({
     name: 'get_resource_action_snippet',
-    arguments: { resource: 'general_rpc', action: 'call_cosmos_rpc', language: 'node' },
+    arguments: { resource: 'general_rpc_lcd', action: 'call_cosmos_rpc', language: 'node' },
   });
   const cosmosNodeSnippetText =
     (cosmosNodeSnippetRes.content &&
@@ -155,14 +176,14 @@ export const testGeneralResources = async (client) => {
     !cosmosNodeSnippetParsed?.snippet ||
     !/status|<rpc_method>/.test(cosmosNodeSnippetParsed.snippet)
   ) {
-    throw new Error('general_rpc.call_cosmos_rpc node snippet missing method');
+    throw new Error('general_rpc_lcd.call_cosmos_rpc node snippet missing method');
   }
 
   // Payload-driven snippet: method/params should appear in snippet
   const payloadSnippetRes = await client.callTool({
     name: 'get_resource_action_snippet',
     arguments: {
-      resource: 'general_rpc',
+      resource: 'general_rpc_lcd',
       action: 'call_evm_rpc',
       language: 'node',
       payload: {
@@ -191,7 +212,7 @@ export const testGeneralResources = async (client) => {
   // Unsupported language should error
   const badSnippet = await client.callTool({
     name: 'get_resource_action_snippet',
-    arguments: { resource: 'general_rpc', action: 'call_evm_rpc', language: 'madeup' },
+    arguments: { resource: 'general_rpc_lcd', action: 'call_evm_rpc', language: 'madeup' },
   });
   const badSnippetText =
     (badSnippet.content && badSnippet.content[0] && badSnippet.content[0].text) || '';
@@ -203,7 +224,7 @@ export const testGeneralResources = async (client) => {
   const evmInvokeMissingRes = await client.callTool({
     name: 'invoke_resource_action',
     arguments: {
-      resource: 'general_rpc',
+      resource: 'general_rpc_lcd',
       action: 'call_evm_rpc',
       payload: { rpc_method: 'eth_blockNumber' },
     },
@@ -217,11 +238,29 @@ export const testGeneralResources = async (client) => {
     throw new Error('Expected missing endpoint/chain_id error for call_evm_rpc');
   }
 
+  // LCD: missing both endpoint and chain_id should error
+  const lcdInvokeMissingRes = await client.callTool({
+    name: 'invoke_resource_action',
+    arguments: {
+      resource: 'general_rpc_lcd',
+      action: 'call_cosmos_lcd',
+      payload: { path: '/cosmos/gov/v1beta1/proposals' },
+    },
+  });
+  const lcdInvokeMissingText =
+    (lcdInvokeMissingRes.content &&
+      lcdInvokeMissingRes.content[0] &&
+      lcdInvokeMissingRes.content[0].text) ||
+    '';
+  if (!/Missing 'endpoint' or 'chain_id'/i.test(lcdInvokeMissingText)) {
+    throw new Error('Expected missing endpoint/chain_id error for call_cosmos_lcd');
+  }
+
   // Invoke rpc get_connection_details and assert structure
   const rpcInvokeRes = await client.callTool({
     name: 'invoke_resource_action',
     arguments: {
-      resource: 'general_rpc',
+      resource: 'general_rpc_lcd',
       action: 'get_connection_details',
       payload: {},
     },
@@ -233,11 +272,11 @@ export const testGeneralResources = async (client) => {
     rpcDetails = JSON.parse(rpcInvokeText);
     // dbg('RPC details:', JSON.stringify(rpcDetails, null, 2));
   } catch (e) {
-    throw new Error('general_rpc.get_connection_details did not return JSON');
+    throw new Error('general_rpc_lcd.get_connection_details did not return JSON');
   }
   // New structure: keyed by chain_id ('pacific-1', 'atlantic-2')
   if (!rpcDetails['pacific-1'] || !rpcDetails['atlantic-2']) {
-    throw new Error('general_rpc.get_connection_details missing expected chain keys');
+    throw new Error('general_rpc_lcd.get_connection_details missing expected chain keys');
   }
   const pacific = rpcDetails['pacific-1'];
   const atlantic = rpcDetails['atlantic-2'];
@@ -248,6 +287,36 @@ export const testGeneralResources = async (client) => {
   }
   if (!pacific?.cosmos?.lcd?.includes('https://rest.sei-apis.com')) {
     throw new Error('pacific-1 cosmos.lcd missing expected endpoint');
+  }
+
+  // Happy path: LCD proposals via pacific-1
+  const lcdInvokeOk = await client.callTool({
+    name: 'invoke_resource_action',
+    arguments: {
+      resource: 'general_rpc_lcd',
+      action: 'call_cosmos_lcd',
+      payload: {
+        chain_id: 'pacific-1',
+        path: '/cosmos/gov/v1beta1/proposals',
+        query: { 'pagination.limit': 1 },
+      },
+    },
+  });
+  const lcdInvokeOkText =
+    (lcdInvokeOk.content && lcdInvokeOk.content[0] && lcdInvokeOk.content[0].text) || '';
+  dbg('call_cosmos_lcd response:', lcdInvokeOkText);
+  let lcdJson;
+  try {
+    lcdJson = JSON.parse(lcdInvokeOkText);
+  } catch {
+    // tolerate non-JSON wrapper; ensure proposals keyword appears
+  }
+  if (lcdJson) {
+    if (!Array.isArray(lcdJson.proposals)) {
+      throw new Error('call_cosmos_lcd JSON missing proposals array');
+    }
+  } else if (!/proposals/i.test(lcdInvokeOkText)) {
+    throw new Error('call_cosmos_lcd response missing proposals');
   }
   if (
     !Array.isArray(pacific?.evm?.rpc) ||

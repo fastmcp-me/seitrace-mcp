@@ -3,9 +3,10 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { McpToolDefinition, JsonObject } from '../../types.js';
 import { executeApiTool } from './api_executor.js';
 import { executeRpcTool } from './rpc_executor.js';
+import { executeLcdTool } from './lcd_executor.js';
 
 // Executor registry and getter (typed params)
-export type ExecutorType = 'api' | 'rpc' | 'graphql';
+export type ExecutorType = 'api' | 'rpc' | 'lcd' | 'graphql';
 
 /**
  * Parameters for the API executor.
@@ -33,6 +34,7 @@ const EXECUTOR_MAP: Record<ExecutorType, Executor> = {
       params.baseUrl
     ),
   rpc: (params: any) => executeRpcTool(params.toolName, params.definition, params.toolArgs),
+  lcd: (params: any) => executeLcdTool(params.toolName, params.definition, params.toolArgs),
   graphql: async () => {
     throw new Error('UNSUPPORTED_EXECUTOR');
   },

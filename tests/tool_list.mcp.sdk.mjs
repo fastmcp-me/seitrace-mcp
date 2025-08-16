@@ -82,7 +82,7 @@ export const testToolList = async (client) => {
     'insights_cw721',
     'insights_smart_contract',
     'general_faucet',
-    'general_rpc',
+    'general_rpc_lcd',
   ];
   const namesOnly = rootParsed.resources.map((r) => r.name);
   const missing = expectedControllers.filter((n) => !namesOnly.includes(n));

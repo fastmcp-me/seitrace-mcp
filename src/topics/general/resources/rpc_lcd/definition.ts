@@ -12,9 +12,9 @@ export const RESOURCE_DESCRIPTION =
 
 export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
   [
-    'RpcController-getConnectionDetails',
+    'RpcLcdController-getConnectionDetails',
     {
-      name: 'RpcController-getConnectionDetails',
+      name: 'RpcLcdController-getConnectionDetails',
       description:
         'Get RPC/LCD endpoints and explorer details for developers connecting to Sei (Cosmos + EVM). The agents will use these info for setting smart contract developments like foundry, hardhat, vyper, ...',
       inputSchema: {
@@ -120,9 +120,9 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
     },
   ],
   [
-    'RpcController-callEvmRpc',
+    'RpcLcdController-callEvmRpc',
     {
-      name: 'RpcController-callEvmRpc',
+      name: 'RpcLcdController-callEvmRpc',
       description:
         'Perform a JSON-RPC call against the Sei EVM endpoint. Provide rpc_method and optional params; specify chain_id or an explicit endpoint override.',
       inputSchema: {
@@ -141,7 +141,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           chain_id: {
             type: 'string',
             description: 'Target chain ID if no endpoint override provided',
-            enum: ['pacific-1', 'atlantic-2'],
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
           },
           endpoint: {
             type: 'string',
@@ -160,9 +160,9 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
     },
   ],
   [
-    'RpcController-callCosmosRpc',
+    'RpcLcdController-callCosmosRpc',
     {
-      name: 'RpcController-callCosmosRpc',
+      name: 'RpcLcdController-callCosmosRpc',
       description:
         'Perform a JSON-RPC call against the Sei Cosmos (Tendermint) RPC endpoint. Provide rpc_method and optional params; specify chain_id or an explicit endpoint override.',
       inputSchema: {
@@ -178,7 +178,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           chain_id: {
             type: 'string',
             description: 'Target chain ID if no endpoint override provided',
-            enum: ['pacific-1', 'atlantic-2'],
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
           },
           endpoint: {
             type: 'string',
@@ -194,6 +194,52 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       securityRequirements: [],
       executor: 'rpc',
       snippetGenerator: 'rpc',
+    },
+  ],
+  [
+    'RpcLcdController-callCosmosLcd',
+    {
+      name: 'RpcLcdController-callCosmosLcd',
+      description:
+        'Perform an HTTP request against the Sei Cosmos LCD (REST) endpoint. Provide the LCD path and optional query/body; specify chain_id or an explicit endpoint override.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'LCD path beginning with / (e.g., /cosmos/gov/v1beta1/proposals)',
+          },
+          method: {
+            type: 'string',
+            description: 'HTTP method',
+            enum: ['GET', 'POST'],
+            default: 'GET',
+          },
+          query: { type: 'object', description: 'Query parameters', additionalProperties: true },
+          body: {
+            type: 'object',
+            description: 'JSON request body for non-GET methods',
+            additionalProperties: true,
+          },
+          chain_id: {
+            type: 'string',
+            description: 'Target chain ID if no endpoint override provided',
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional LCD base URL override (e.g., https://rest.sei-apis.com). If provided, chain_id is ignored for routing.',
+          },
+        },
+        required: ['path'],
+        additionalProperties: false,
+      },
+      method: 'lcd',
+      executionParameters: [],
+      securityRequirements: [],
+      executor: 'lcd',
+      snippetGenerator: null,
     },
   ],
 ]);

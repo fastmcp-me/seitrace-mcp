@@ -19,8 +19,8 @@ export interface McpToolDefinition {
   securityRequirements: any[];
   // Optional static response for local actions (no HTTP call)
   staticResponse?: any;
-  // Execution handler type: 'api' uses HTTP, 'rpc' or 'graphql' (future), or null for static
-  executor?: 'api' | 'rpc' | 'graphql' | null;
+  // Execution handler type: 'api' uses HTTP, 'rpc' JSON-RPC, 'lcd' for Cosmos LCD, 'graphql' (future), or null for static
+  executor?: 'api' | 'rpc' | 'lcd' | 'graphql' | null;
   // Snippet generator type: 'oas' for OpenAPI-based snippet, 'rpc' for JSON-RPC snippets, or null for unsupported
   snippetGenerator?: 'oas' | 'rpc' | null;
 }

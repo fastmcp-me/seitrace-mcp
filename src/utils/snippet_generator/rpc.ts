@@ -2,7 +2,7 @@ import { HTTPSnippet } from '@readme/httpsnippet';
 import { getSupportedLanguages } from '@readme/oas-to-snippet/languages';
 
 import { McpToolDefinition } from '../../types.js';
-import { endpointDefinitionMap as rpcEndpointMap } from '../../topics/general/resources/rpc/definition.js';
+import { endpointDefinitionMap as rpcEndpointMap } from '../../topics/general/resources/rpc_lcd/definition.js';
 
 export const SUPPORTED_RPC_SNIPPET_LANGUAGES = Object.keys(getSupportedLanguages());
 
@@ -16,7 +16,7 @@ export function generateRpcSnippet(
   language: (typeof SUPPORTED_RPC_SNIPPET_LANGUAGES)[number],
   payload?: { rpc_method?: string; params?: any[]; endpoint?: string }
 ): string {
-  const conn = (rpcEndpointMap.get('RpcController-getConnectionDetails') as any)?.staticResponse;
+  const conn = (rpcEndpointMap.get('RpcLcdController-getConnectionDetails') as any)?.staticResponse;
   const pacific = conn?.['pacific-1'];
   const atlantic = conn?.['atlantic-2'];
   const isCosmos = /callCosmosRpc$/i.test(definition.name) || /call_cosmos_rpc$/i.test(actionName);
