@@ -5,6 +5,16 @@
 			"label": "build (tsc)",
 			"type": "shell",
 			"command": "npm run -s build"
+		},
+		{
+			"label": "build (tsc)",
+			"type": "shell",
+			"command": "npm run -s build"
+		},
+		{
+			"label": "build (tsc)",
+			"type": "shell",
+			"command": "npm run -s build"
 		}
 	]
 }

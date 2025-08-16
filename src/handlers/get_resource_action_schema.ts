@@ -2,7 +2,7 @@ import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { ToolArgs } from '../topics/base.js';
 import { TOPIC_KEY_MAP } from '../topics/index.js';
-import { McpResponse } from '../utils.js';
+import { McpResponse } from '../utils/index.js';
 
 /**
  * Handles the 'getResourceActionSchema' tool request

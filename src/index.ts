@@ -16,7 +16,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { handlerMap } from './handlers/index.js';
 import { toolListHandler } from './handlers/tools_list.js';
-import { McpResponse } from './utils.js';
+import { McpResponse } from './utils/index.js';
 
 /**
  * Cleanup function for graceful shutdown

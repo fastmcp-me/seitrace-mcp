@@ -1,16 +1,16 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { findAction, findResource, GetSnippetToolArgs, ITopic } from '../base.js';
-import { endpointDefinitionMap, securitySchemes } from './resources/openapi-definition.js';
+import { endpointDefinitionMap } from './resources/definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
-  executeApiTool,
+  getExecutor,
   McpResponse,
   withMcpResponse,
-} from '../../utils.js';
+} from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
-import { GENERAL_API_BASE_URL } from '../../constants.js';
+import { GENERAL_API_BASE_URL, securitySchemes } from '../../constants.js';
 
 export interface GeneralToolArgs extends GetSnippetToolArgs {}
 
@@ -129,18 +129,27 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
     const { resource, action, payload } = toolArgs;
     return withMcpResponse<CallToolResult>(async () => {
       const foundAction = findAction(this.getResources(), resource, action!);
+
+      // Decide execution path using executor field
+      if (foundAction.executor === null && (foundAction as any).staticResponse) {
+        return McpResponse(JSON.stringify((foundAction as any).staticResponse));
+      }
+
+      // Remote-like executors require a payload validated against schema
       if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
         return McpResponse(
           `Invalid or missing 'payload' for tool 'invokeResourceAction'. Provide an object matching the action schema.`
         );
       }
-      return await executeApiTool(
-        `${resource}.${action}`,
-        foundAction,
-        payload,
+
+      const executorFn = getExecutor((foundAction as any).executor);
+      return await executorFn({
+        toolName: `${resource}.${action}`,
+        definition: foundAction,
+        toolArgs: payload,
         securitySchemes,
-        GENERAL_API_BASE_URL
-      );
+        baseUrl: GENERAL_API_BASE_URL,
+      });
     });
   }
 }

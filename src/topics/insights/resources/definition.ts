@@ -1,16 +1,4 @@
-import { McpGroupedToolDefinition, McpToolDefinition } from '../../../types.js';
-import { controllerNameToToolName, camelToSnake } from '../../../utils.js';
-
-/**
- * Security schemes from the OpenAPI spec
- */
-export const securitySchemes = {
-  apiKey: {
-    type: 'apiKey',
-    in: 'header',
-    name: 'x-api-key',
-  },
-};
+import { McpToolDefinition } from '../../../types.js';
 
 /**
  * Flat map of endpoint tool definitions by name (as originally generated)
@@ -49,6 +37,8 @@ The endpoint to get address details.
       ],
       requestBodyContentType: undefined,
       securityRequirements: [{ apiKey: [] }],
+      executor: 'api',
+      snippetGenerator: 'oas',
     },
   ],
   [
@@ -1532,29 +1522,3 @@ The endpoint to get smart contract details.
     },
   ],
 ]);
-
-/**
- * Construct grouped tools from flat endpoint definitions
- */
-export const groupedToolDefinitionMap: Map<string, McpGroupedToolDefinition> = (() => {
-  const map = new Map<string, McpGroupedToolDefinition>();
-
-  for (const [fullName, def] of endpointDefinitionMap.entries()) {
-    // fullName format: <ControllerName>-<ActionNameCamel>
-    const [controllerPart, actionCamel = ''] = fullName.split('-');
-    const toolName = controllerNameToToolName(controllerPart);
-    const actionName = camelToSnake(actionCamel);
-
-    // Initialize grouped entry if needed
-    if (!map.has(toolName)) {
-      map.set(toolName, {
-        name: toolName,
-        actions: {},
-      });
-    }
-    const grouped = map.get(toolName)!;
-    grouped.actions[actionName] = def;
-  }
-
-  return map;
-})();

@@ -17,6 +17,12 @@ export interface McpToolDefinition {
   executionParameters: { name: string; in: string }[];
   requestBodyContentType?: string;
   securityRequirements: any[];
+  // Optional static response for local actions (no HTTP call)
+  staticResponse?: any;
+  // Execution handler type: 'api' uses HTTP, 'rpc' or 'graphql' (future), or null for static
+  executor?: 'api' | 'rpc' | 'graphql' | null;
+  // Snippet generator type: 'oas' for OpenAPI-based snippet or null for unsupported
+  snippetGenerator?: 'oas' | null;
 }
 
 /**

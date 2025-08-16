@@ -1,18 +1,21 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import NodePath from 'path';
 
 import { findAction, findResource, GetSnippetToolArgs, ITopic } from '../base.js';
-import { endpointDefinitionMap, securitySchemes } from './resources/openapi-definition.js';
+import { endpointDefinitionMap } from './resources/definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
-  executeApiTool,
   generateSnippet,
+  getExecutor,
   McpResponse,
   SUPPORTED_SNIPPET_LANGUAGES,
   withMcpResponse,
-} from '../../utils.js';
+} from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
-import { INSIGHTS_API_BASE_URL } from '../../constants.js';
+import { INSIGHTS_API_BASE_URL, securitySchemes } from '../../constants.js';
 
 /**
  * Arguments for invoking an insights tool action
@@ -109,6 +112,10 @@ s   */
     const { resource, action, language } = toolArgs;
     return withMcpResponse<CallToolResult>(async () => {
       const foundAction = findAction(this.getResources(), resource, action!);
+      const snippetGen = (foundAction as any).snippetGenerator || 'oas';
+      if (snippetGen !== 'oas') {
+        return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      }
       if (typeof language !== 'string' || !SUPPORTED_SNIPPET_LANGUAGES.includes(language)) {
         return McpResponse(
           `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(
@@ -116,7 +123,13 @@ s   */
           )}`
         );
       }
-      const snippet = generateSnippet(foundAction.pathTemplate!, language!);
+      // Prepare openapi specs
+      const fileName = fileURLToPath(import.meta.url);
+      const dirName = NodePath.dirname(fileName);
+      const specs = fs.readFileSync(NodePath.join(dirName, './resources/api-specs.json')).toString();
+
+      // Generate code snippet
+      const snippet = generateSnippet(foundAction.pathTemplate!, language!, specs);
       return McpResponse(JSON.stringify({ resource, action, language, snippet }));
     });
   }
@@ -158,7 +171,6 @@ s   */
 
     return withMcpResponse<CallToolResult>(async () => {
       const foundAction = findAction(this.getResources(), resource, action!);
-
       /**
        * Validate the payload against the action schema
        */
@@ -173,14 +185,14 @@ s   */
         );
       }
 
-      // Return the result of the API tool execution
-      return await executeApiTool(
-        `${resource}.${action}`,
-        foundAction,
-        payload,
+      const executorFn = getExecutor((foundAction as any).executor);
+      return await executorFn({
+        toolName: `${resource}.${action}`,
+        definition: foundAction,
+        toolArgs: payload,
         securitySchemes,
-        INSIGHTS_API_BASE_URL
-      );
+        baseUrl: INSIGHTS_API_BASE_URL,
+      });
     });
   }
 }

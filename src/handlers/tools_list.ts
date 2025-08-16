@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { SUPPORTED_SNIPPET_LANGUAGES } from '../utils.js';
+import { SUPPORTED_SNIPPET_LANGUAGES } from '../utils/index.js';
 import {
   GET_RESOURCE_ACTION_SNIPPET_TOOL,
   INVOKE_RESOURCE_ACTION_TOOL,

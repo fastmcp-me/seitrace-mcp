@@ -1,25 +1,4 @@
-import { McpToolDefinition } from '../../../types.js';
-
-/**
- * General topic OpenAPI-like definitions
- *
- * This file declares the single "faucet" resource for the `general` topic.
- * The endpoint allows requesting faucet funds once every 24 hours per API key.
- * The 24h throttling is enforced server-side; we just surface the endpoint and schema.
- */
-
-/**
- * Security schemes for general topic (API Key via x-api-key header)
- * Handlers will call `applySecurity(...)` to inject this header when
- * an environment variable SECRET_APIKEY is present.
- */
-export const securitySchemes = {
-  apiKey: {
-    type: 'apiKey',
-    in: 'header',
-    name: 'x-api-key',
-  },
-};
+import { McpToolDefinition } from '../../../../types.js';
 
 /**
  * Faucet endpoint definition
@@ -52,6 +31,8 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       executionParameters: [],
       requestBodyContentType: 'application/json',
       securityRequirements: [{ apiKey: [] }],
+      executor: 'api',
+      snippetGenerator: null,
     },
   ],
 ]);

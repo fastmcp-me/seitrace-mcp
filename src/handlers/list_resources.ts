@@ -1,6 +1,6 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { AVAILABLE_TOPICS } from '../topics/index.js';
-import { McpResponse } from '../utils.js';
+import { McpResponse } from '../utils/index.js';
 
 /**
  * List all available resources.
