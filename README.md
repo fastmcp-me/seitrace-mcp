@@ -16,22 +16,23 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 **Supported resources**
 
-**Insights**
-
-- `insights_address` — address detail, transactions, and token transfers.
-- `insights_erc20` — ERC‑20 token information, balances, transfers, and holders.
-- `insights_erc721` — ERC‑721 token information, transfers, and holders.
-- `insights_erc1155` — ERC‑1155 token information, instances, and holders.
-- `insights_cw20` — CW20 token information, balances, transfers, and holders.
-- `insights_cw721` — CW721 token information, transfers, and holders.
-- `insights_ics20` — ICS‑20 (IBC fungible) transfer information.
-- `insights_native` — native token information and statistics.
-- `insights_smart_contract` — smart contract detail.
-
 **General**
 
 - `general_faucet` - enable requesting faucet for developers
 - `general_rpc` - enable general rpc inquiries for the agents, and execute the rpc requests based on the demands
+
+**Insights**
+
+- `insights_address` — Query address data: details, transactions, token transfers.
+- `insights_erc20` — Query ERC-20 tokens: info, balances, transfers, holders.
+- `insights_cw20` — Query CW20 tokens: info, balances, transfers, holders.
+- `insights_native` — Query native tokens: info, transfers, balances, holders.
+- `insights_ics20` — Query ICS20 tokens: info, transfers, balances, holders.
+- `insights_erc721` — Query ERC-721 tokens: info, holders, instances, balances, transfers.
+- `insights_erc1155` — Query ERC-1155 tokens: info, holders, instances, balances, transfers.
+- `insights_cw721` — Query CW721 tokens: info, instances, balances, holders, transfers.
+- `insights_smart_contract` — Query smart contract details.
+
 
 ## Getting started
 
