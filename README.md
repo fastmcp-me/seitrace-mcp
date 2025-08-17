@@ -93,56 +93,6 @@ const snippet = await client.callTool({ name: 'get_resource_action_snippet', arg
 
 The server validates `payload` against the action’s schema and returns a pretty-printed JSON body when applicable.
 
-## Associations (General) 🔗
-
-Query hybrid associations between EVM and Sei (addresses, assets, transactions).
-
-- Resource: `general_associations`
-- Action: `get_associations`
-- Payload schema:
-	- `hashes` (string[], required) — one or more EVM/Sei addresses, asset ids, or tx hashes
-	- `chain_id` (string, optional) — one of `pacific-1`, `atlantic-2`, `arctic-1`
-	- `endpoint` (string, optional) — overrides gateway base URL; if set, `chain_id` is ignored
-
-Example invocation:
-
-```js
-const res = await client.callTool({
-	name: 'invoke_resource_action',
-	arguments: {
-		resource: 'general_associations',
-		action: 'get_associations',
-		payload: {
-			chain_id: 'pacific-1',
-			hashes: [
-				'0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18',
-				'0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
-			],
-		},
-	},
-});
-// res.content[0].text -> "[ { hash, mappings: [ { evm_hash, sei_hash, type, pointer?, pointee? } ] } ]"
-```
-
-Example response (shape):
-
-```json
-[
-	{
-		"hash": "0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18",
-		"mappings": [
-			{
-				"evm_hash": "0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18",
-				"sei_hash": "sei1...",
-				"type": "CREATE_ERC20_POINTER",
-				"pointer": "0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18",
-				"pointee": "sei1..."
-			}
-		]
-	}
-]
-```
-
 ## Requirements 🔧
 
 - Node.js 20+

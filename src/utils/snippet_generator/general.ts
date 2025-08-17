@@ -127,9 +127,15 @@ export function generateGeneralFromDefinition(
   if (definition.executor === 'gateway') {
     const chainId = payload?.chain_id || '';
     const endpoint = payload?.endpoint || '';
-    const baseUrl = endpoint || (chainId && GATEWAY_BY_CHAIN[chainId]) || '<GATEWAY_ENDPOINT>';
-    const queryParams: Record<string, any> = {};
-    if (Array.isArray(payload?.hashes)) queryParams['hashes'] = payload!.hashes;
+  const baseUrl = endpoint || (chainId && GATEWAY_BY_CHAIN[chainId]) || GATEWAY_BY_CHAIN['pacific-1'];
+    const DEFAULT_HASHES = [
+      '0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18',
+      '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
+    ];
+    const chosenHashes = Array.isArray(payload?.hashes) && payload!.hashes.length
+      ? payload!.hashes
+      : DEFAULT_HASHES;
+    const queryParams: Record<string, any> = { hashes: chosenHashes };
 
     const snippet = generateGeneralSnippet(
       {

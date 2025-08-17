@@ -396,14 +396,15 @@ export const testGeneralResources = async (client) => {
   let assocSnippetParsed;
   try {
     assocSnippetParsed = JSON.parse(assocSnippetText);
-    dbg(`general_associations.get_associations snippet: ${JSON.stringify(assocSnippetParsed)}`);
+    dbg(`general_associations.get_associations snippet`, assocSnippetParsed);
   } catch {
     throw new Error('general_associations.get_associations snippet did not return JSON');
   }
   if (
     !assocSnippetParsed?.snippet ||
     typeof assocSnippetParsed.snippet !== 'string' ||
-    !/\/api\/v1\/addresses\/associations/.test(assocSnippetParsed.snippet)
+    !/\/api\/v1\/addresses\/associations/.test(assocSnippetParsed.snippet) ||
+    !/hashes=0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18/.test(assocSnippetParsed.snippet)
   ) {
     throw new Error('associations snippet missing expected path');
   }
