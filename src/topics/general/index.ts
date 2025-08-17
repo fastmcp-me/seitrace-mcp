@@ -1,19 +1,19 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 import { findAction, findResource, GetSnippetToolArgs, ITopic } from '../base.js';
-import { endpointDefinitionMap, TOPIC_KEY } from './definition.js';
+import { endpointDefinitionMap, RESOLVER_MAP, TOPIC_KEY } from './definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
-  generateRpcSnippet,
   getExecutor,
   McpResponse,
-  SUPPORTED_RPC_SNIPPET_LANGUAGES,
   withMcpResponse,
+  SNIPPET_GENERATOR_MAP,
+  SUPPORTED_RPC_SNIPPET_LANGUAGES,
+  SUPPORTED_GENERAL_SNIPPET_LANGUAGES,
 } from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
 import { GENERAL_API_BASE_URL, securitySchemes } from '../../constants.js';
-import { resolveAssociations } from './resources/associations/resolver.js';
 /**
  * Arguments for general topic tools.
  */
@@ -30,7 +30,7 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
   private resources: Map<string, McpGroupedToolDefinition>;
 
   /**
-  * Construct the General topic and build its resource/action map.
+   * Construct the General topic and build its resource/action map.
    * Currently wires a single resource `general_faucet` with action `request_faucet`.
    */
   constructor() {
@@ -38,7 +38,7 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
     // Insights topic strategy so handlers can treat topics uniformly.
     const map = new Map<string, McpGroupedToolDefinition>();
 
-  for (const [fullName, def] of endpointDefinitionMap.entries()) {
+    for (const [fullName, def] of endpointDefinitionMap.entries()) {
       const [controllerPart, actionCamel = ''] = fullName.split('-');
       // faucet_controller -> general_faucet
       const resourceName = `${this.TOPIC_KEY}_${controllerNameToToolName(controllerPart)}`;
@@ -48,7 +48,7 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
         map.set(resourceName, { name: resourceName, actions: {} });
       }
       const grouped = map.get(resourceName)!;
-  grouped.actions[actionName] = def;
+      grouped.actions[actionName] = def;
     }
 
     this.resources = map;
@@ -98,27 +98,27 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
     const { resource, action, language, payload } = toolArgs;
     return withMcpResponse<CallToolResult>(async () => {
       const foundAction = findAction(this.getResources(), resource, action!);
-      const generator = (foundAction as any).snippetGenerator;
-      if (generator === 'rpc') {
-        if (
-          typeof language !== 'string' ||
-          !SUPPORTED_RPC_SNIPPET_LANGUAGES.includes(language as any)
-        ) {
-          return McpResponse(
-            `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_RPC_SNIPPET_LANGUAGES.join(
-              ', '
-            )}`
-          );
-        }
-        const snippet = generateRpcSnippet(
-          foundAction as any,
-          action!,
-          language as any,
-          payload as any
+  // Language validation is handled per generator below
+
+      const snippetGen = (foundAction as any).snippetGenerator;
+      if (!snippetGen) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+
+      // rpc/general generators use a common signature
+      const generator = (SNIPPET_GENERATOR_MAP as any)[snippetGen];
+      if (!generator) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      const supported =
+        snippetGen === 'rpc'
+          ? SUPPORTED_RPC_SNIPPET_LANGUAGES
+          : SUPPORTED_GENERAL_SNIPPET_LANGUAGES;
+      if (typeof language !== 'string' || !supported.includes(language as any)) {
+        return McpResponse(
+          `Unsupported or missing language '${language}'. Supported languages: ${supported.join(
+            ', '
+          )}`
         );
-        return McpResponse(JSON.stringify({ resource, action, language, snippet }));
       }
-      return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      const snippet = generator(foundAction as any, action!, language as any, payload as any);
+      return McpResponse(JSON.stringify({ resource, action, language, snippet }));
     });
   }
 
@@ -179,23 +179,16 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
         securitySchemes,
         baseUrl: GENERAL_API_BASE_URL,
       });
+
       // Post-process with resolver if defined
       try {
         const resolverId = (foundAction as any).resolver as string | undefined;
-        if (!resolverId) return result;
-        if (!('content' in result) || typeof (result as any).content?.[0]?.text !== 'string') {
-          return result;
-        }
-        const text: string = (result as any).content[0].text as string;
-        const match = text.match(/\n([\s\S]*)$/);
-        const jsonPart = match ? match[1] : text;
-        const parsed = JSON.parse(jsonPart);
-        let shaped: any = parsed;
-        if (resolverId === 'associations') {
-          shaped = resolveAssociations(parsed);
-        }
-        return McpResponse(JSON.stringify(shaped));
+        if (!resolverId || !RESOLVER_MAP[resolverId]) return result;
+
+        const resolver = RESOLVER_MAP[resolverId];
+        return resolver(result);
       } catch (_e) {
+        console.error('Error occurred while resolving:', _e);
         // If resolver fails, return original result
         return result;
       }

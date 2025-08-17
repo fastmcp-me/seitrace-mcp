@@ -385,6 +385,29 @@ export const testGeneralResources = async (client) => {
     throw new Error('general_associations missing get_associations action');
   }
 
+  // Snippet generation is supported for associations (shell)
+  const assocSnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { resource: 'general_associations', action: 'get_associations', language: 'node' },
+  });
+  const assocSnippetText =
+    (assocSnippetRes.content && assocSnippetRes.content[0] && assocSnippetRes.content[0].text) ||
+    '';
+  let assocSnippetParsed;
+  try {
+    assocSnippetParsed = JSON.parse(assocSnippetText);
+    dbg(`general_associations.get_associations snippet: ${JSON.stringify(assocSnippetParsed)}`);
+  } catch {
+    throw new Error('general_associations.get_associations snippet did not return JSON');
+  }
+  if (
+    !assocSnippetParsed?.snippet ||
+    typeof assocSnippetParsed.snippet !== 'string' ||
+    !/\/api\/v1\/addresses\/associations/.test(assocSnippetParsed.snippet)
+  ) {
+    throw new Error('associations snippet missing expected path');
+  }
+
   // Schema requires hashes array; chain_id/endpoint optional
   const assocSchemaRes = await client.callTool({
     name: 'get_resource_action_schema',

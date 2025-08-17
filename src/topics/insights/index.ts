@@ -8,11 +8,13 @@ import { endpointDefinitionMap } from './resources/definition.js';
 import {
   camelToSnake,
   controllerNameToToolName,
-  generateSnippet,
   getExecutor,
   McpResponse,
-  SUPPORTED_SNIPPET_LANGUAGES,
   withMcpResponse,
+  SNIPPET_GENERATOR_MAP,
+  SUPPORTED_SNIPPET_LANGUAGES,
+  SUPPORTED_RPC_SNIPPET_LANGUAGES,
+  SUPPORTED_GENERAL_SNIPPET_LANGUAGES,
 } from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
 import { INSIGHTS_API_BASE_URL, securitySchemes } from '../../constants.js';
@@ -110,29 +112,40 @@ s   */
   public getResourceActionSnippet(
     toolArgs: InsightsToolArgs
   ): Promise<CallToolResult> | CallToolResult {
-    const { resource, action, language } = toolArgs;
+    const { resource, action, language, payload } = toolArgs;
     return withMcpResponse<CallToolResult>(async () => {
       const foundAction = findAction(this.getResources(), resource, action!);
       const snippetGen = (foundAction as any).snippetGenerator || 'oas';
-      if (snippetGen !== 'oas') {
-        return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      const generator = (SNIPPET_GENERATOR_MAP as any)[snippetGen];
+      if (!generator) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+
+      // If generator is 'oas', load specs and call the function signature used by that generator
+      if (snippetGen === 'oas') {
+        if (typeof language !== 'string' || !SUPPORTED_SNIPPET_LANGUAGES.includes(language)) {
+          return McpResponse(
+            `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(', ')}`
+          );
+        }
+        const fileName = fileURLToPath(import.meta.url);
+        const dirName = NodePath.dirname(fileName);
+        const specs = fs
+          .readFileSync(NodePath.join(dirName, './resources/api-specs.json'))
+          .toString();
+        const snippet = generator(foundAction.pathTemplate!, language!, specs);
+        return McpResponse(JSON.stringify({ resource, action, language, snippet }));
       }
-      if (typeof language !== 'string' || !SUPPORTED_SNIPPET_LANGUAGES.includes(language)) {
+
+      // For other generators (e.g., rpc, general), call with common signature
+      const supported =
+        snippetGen === 'rpc'
+          ? SUPPORTED_RPC_SNIPPET_LANGUAGES
+          : SUPPORTED_GENERAL_SNIPPET_LANGUAGES;
+      if (typeof language !== 'string' || !supported.includes(language as any)) {
         return McpResponse(
-          `Unsupported or missing language '${language}'. Supported languages: ${SUPPORTED_SNIPPET_LANGUAGES.join(
-            ', '
-          )}`
+          `Unsupported or missing language '${language}'. Supported languages: ${supported.join(', ')}`
         );
       }
-      // Prepare openapi specs
-      const fileName = fileURLToPath(import.meta.url);
-      const dirName = NodePath.dirname(fileName);
-      const specs = fs
-        .readFileSync(NodePath.join(dirName, './resources/api-specs.json'))
-        .toString();
-
-      // Generate code snippet
-      const snippet = generateSnippet(foundAction.pathTemplate!, language!, specs);
+      const snippet = generator(foundAction, action!, language as any, payload as any);
       return McpResponse(JSON.stringify({ resource, action, language, snippet }));
     });
   }

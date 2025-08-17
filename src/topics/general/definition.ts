@@ -10,6 +10,8 @@ import {
   endpointDefinitionMap as associationsEndpoints,
   RESOURCE_DESCRIPTION as ASSOCIATIONS_DESC,
 } from './resources/associations/definition.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { associationsResolver } from './resources/associations/resolver.js';
 
 /**
  * General topic key.
@@ -28,4 +30,11 @@ export const GENERAL_RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
   [`${TOPIC_KEY}_faucet`]: FAUCET_DESC,
   [`${TOPIC_KEY}_rpc_lcd`]: RPC_DESC,
   [`${TOPIC_KEY}_associations`]: ASSOCIATIONS_DESC,
+};
+
+/**
+ * Resolver functions for shaping API responses.
+ */
+export const RESOLVER_MAP: Record<string, (result: CallToolResult) => CallToolResult> = {
+  [`associations`]: associationsResolver,
 };

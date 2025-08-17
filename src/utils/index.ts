@@ -5,4 +5,6 @@ export * from './format_api_error.js';
 export * from './format_api_response.js';
 export * from './snippet_generator/oas.js';
 export * from './snippet_generator/rpc.js';
+export * from './snippet_generator/general.js';
+export * from './snippet_generator/index.js';
 export * from './schema.js';
