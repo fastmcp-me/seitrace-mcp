@@ -164,7 +164,7 @@ export const testInsightsResouces = async (client, childEnv) => {
     });
     const okText = (ok.content && ok.content[0] && ok.content[0].text) || '';
     dbg('Positive call result:', okText.slice(0, 200) + (okText.length > 200 ? '...' : ''));
-    if (!/API Response \(Status: \d+\)/.test(okText)) {
+    if (!/{/.test(okText)) {
       throw new Error(
         'Expected API Response for positive-path insights_native.get_native_token_info_and_statistic'
       );

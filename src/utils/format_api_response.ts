@@ -34,5 +34,5 @@ export const formatApiResponse = (response: AxiosResponse) => {
   /**
    * Handles response
    */
-  return McpResponse(`API Response (Status: ${response.status}):\n${responseText}`);
+  return McpResponse(responseText);
 };

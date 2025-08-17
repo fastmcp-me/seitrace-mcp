@@ -5,6 +5,8 @@ import { McpToolDefinition, JsonObject } from '../../types.js';
 import { McpResponse } from '../mcp_response.js';
 import { getZodSchemaFromJsonSchema } from '../schema.js';
 import { endpointDefinitionMap as rpcEndpointMap } from '../../topics/general/resources/rpc_lcd/definition.js';
+import { formatApiResponse } from '../format_api_response.js';
+import { formatApiError } from '../format_api_error.js';
 
 export interface RpcExecutorParams {
   toolName: string;
@@ -44,12 +46,12 @@ export const executeRpcTool = async (
       }
     }
 
-  // JSON-RPC specific args
-  const rpcMethod = String(validatedArgs['rpc_method']);
-  const params = Array.isArray(validatedArgs['params']) ? validatedArgs['params'] : [];
+    // JSON-RPC specific args
+    const rpcMethod = String(validatedArgs['rpc_method']);
+    const params = Array.isArray(validatedArgs['params']) ? validatedArgs['params'] : [];
     const overrideEndpoint =
       typeof validatedArgs['endpoint'] === 'string' ? (validatedArgs['endpoint'] as string) : '';
-  const chainId = typeof validatedArgs['chain_id'] === 'string' ? validatedArgs['chain_id'] : '';
+    const chainId = typeof validatedArgs['chain_id'] === 'string' ? validatedArgs['chain_id'] : '';
 
     // Determine target URL
     let url = overrideEndpoint;
@@ -59,10 +61,13 @@ export const executeRpcTool = async (
           "Missing 'endpoint' or 'chain_id'. Provide a custom endpoint or one of: pacific-1, atlantic-2."
         );
       }
-      const conn = (rpcEndpointMap.get('RpcLcdController-getConnectionDetails') as any)?.staticResponse;
+      const conn = (rpcEndpointMap.get('RpcLcdController-getConnectionDetails') as any)
+        ?.staticResponse;
       const chainCfg = conn?.[chainId];
       if (!chainCfg) {
-        return McpResponse(`Unknown chain_id '${chainId}'. Expected pacific-1 or atlantic-2 or arctic-1.`);
+        return McpResponse(
+          `Unknown chain_id '${chainId}'. Expected pacific-1 or atlantic-2 or arctic-1.`
+        );
       }
       const isCosmos = /callCosmosRpc$/i.test(definition.name) || /call_cosmos_rpc$/.test(toolName);
       const arr = isCosmos ? chainCfg?.cosmos?.rpc : chainCfg?.evm?.rpc;
@@ -90,30 +95,9 @@ export const executeRpcTool = async (
       data: payload,
     };
 
-    // Log to stderr for debugging
-  // console.log(`Executing RPC tool "${toolName}": POST ${url} method=${rpcMethod}`);
-
     const response = await axios(config);
-    const contentType = response.headers['content-type']?.toLowerCase() || '';
-    let responseText = '';
-    if (contentType.includes('application/json')) {
-      try {
-        responseText = JSON.stringify(response.data);
-      } catch {
-        responseText = '[Stringify Error]';
-      }
-    } else if (typeof response.data === 'string') {
-      responseText = response.data;
-    } else {
-      responseText = String(response.data);
-    }
-
-    return McpResponse(`RPC Response (Status: ${response.status}):\n${responseText}`);
+    return formatApiResponse(response);
   } catch (error: any) {
-    const msg = error?.response?.data
-      ? JSON.stringify(error.response.data)
-      : error?.message || String(error);
-    console.error(`Error during RPC execution of '${toolName}':`, msg);
-    return McpResponse(msg);
+    return formatApiError(error);
   }
 };
