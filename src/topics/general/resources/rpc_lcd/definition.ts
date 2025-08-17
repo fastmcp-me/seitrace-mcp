@@ -16,7 +16,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
     {
       name: 'RpcLcdController-getConnectionDetails',
       description:
-        'Get RPC/LCD endpoints and explorer details for developers connecting to Sei (Cosmos + EVM). The agents will use these info for setting smart contract developments like foundry, hardhat, vyper, ...',
+        'Get RPC/LCD endpoints and explorer details for developers connecting to Sei (Cosmos + EVM). The agents will use these info for smart contract developments (coding, deploy, verification, ...) like foundry, hardhat, vyper, ...',
       inputSchema: {
         type: 'object',
         properties: {},
