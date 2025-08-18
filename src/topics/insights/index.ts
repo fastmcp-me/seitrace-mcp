@@ -79,7 +79,7 @@ s   */
   public hasResourceAction(resource: string, action: string): boolean {
     if (!resource || !action) return false;
     const foundResource = findResource(this.getResources(), resource);
-    return foundResource.actions.hasOwnProperty(action);
+    return !!foundResource.actions[action];
   }
 
   /**

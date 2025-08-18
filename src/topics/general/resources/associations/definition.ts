@@ -53,7 +53,7 @@ export const endpointDefinitionMap = new Map<string, McpToolDefinition>([
       // Custom executor that handles base URL selection; resolver shapes the output.
       executor: 'gateway',
       resolver: 'associations',
-  snippetGenerator: 'general',
+      snippetGenerator: 'general',
     },
   ],
 ]);

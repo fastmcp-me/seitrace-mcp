@@ -20,7 +20,7 @@ export const formatApiResponse = (response: AxiosResponse) => {
   ) {
     try {
       responseText = JSON.stringify(response.data);
-    } catch (e) {
+    } catch {
       responseText = '[Stringify Error]';
     }
   } else if (typeof response.data === 'string') {

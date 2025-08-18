@@ -33,7 +33,10 @@
     "build": "tsc && chmod 755 build/index.js",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && jest --runInBand",
-    "test:e2e": "npm run build && node tests/e2e.mcp.sdk.mjs"
+    "test:e2e": "npm run build && node tests/e2e.mcp.sdk.mjs",
+    "lint": "bun run lint:fix && bun run prettier:write",
+    "lint:fix": "eslint src --ext .js,.cjs,.mjs,.jsx,.ts,.tsx --fix",
+    "prettier:write": "prettier --write ."
   },
   "engines": {
     "node": ">=20.0.0"
@@ -51,7 +54,13 @@
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^22.15.2",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
     "jest": "^29.7.0",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.2.5",
     "typescript": "^5.8.3"
   }

@@ -120,7 +120,7 @@ export async function applySecurity(
   // Security requirements use OR between array items and AND within each object
   const appliedSecurity = definition.securityRequirements?.find((req: any) => {
     // Try each security requirement (combined with OR)
-    return Object.entries(req).every(([schemeName, scopesArray]) => {
+    return Object.entries(req).every(([schemeName]) => {
       const scheme = allSecuritySchemes[schemeName];
       if (!scheme) return false;
 

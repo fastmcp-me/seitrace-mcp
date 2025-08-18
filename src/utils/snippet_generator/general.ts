@@ -59,7 +59,7 @@ export const generateGeneralSnippet = (
     const snippet = new HTTPSnippet(request);
     const code = snippet.convert(language as any);
     if (code) return Array.isArray(code) ? code[0] : (code as unknown as string);
-  } catch (_) {
+  } catch {
     // Fall through to manual generation
   }
 
@@ -127,14 +127,14 @@ export function generateGeneralFromDefinition(
   if (definition.executor === 'gateway') {
     const chainId = payload?.chain_id || '';
     const endpoint = payload?.endpoint || '';
-  const baseUrl = endpoint || (chainId && GATEWAY_BY_CHAIN[chainId]) || GATEWAY_BY_CHAIN['pacific-1'];
+    const baseUrl =
+      endpoint || (chainId && GATEWAY_BY_CHAIN[chainId]) || GATEWAY_BY_CHAIN['pacific-1'];
     const DEFAULT_HASHES = [
       '0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18',
       '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
     ];
-    const chosenHashes = Array.isArray(payload?.hashes) && payload!.hashes.length
-      ? payload!.hashes
-      : DEFAULT_HASHES;
+    const chosenHashes =
+      Array.isArray(payload?.hashes) && payload!.hashes.length ? payload!.hashes : DEFAULT_HASHES;
     const queryParams: Record<string, any> = { hashes: chosenHashes };
 
     const snippet = generateGeneralSnippet(
@@ -143,7 +143,7 @@ export function generateGeneralFromDefinition(
         path: pathTemplate.replace(/^\//, ''),
         method: 'GET',
         headers: { accept: 'application/json' },
-  queryParams,
+        queryParams,
       },
       language
     );

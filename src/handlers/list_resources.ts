@@ -1,11 +1,13 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+
 import { AVAILABLE_TOPICS, RESOURCE_DESCRIPTION_MAP } from '../topics/index.js';
 import { McpResponse } from '../utils/index.js';
+import { ToolArgs } from '../topics/base.js';
 /**
  * List all available resources.
  * @returns A response containing the list of resources.
  */
-export const listResourcesHandler = async (_: any): Promise<CallToolResult> => {
+export const listResourcesHandler = async (_: ToolArgs): Promise<CallToolResult> => {
   /**
    * List all available resources.
    */
