@@ -42,14 +42,13 @@ export interface AssociationEntry {
  */
 export function associationsResolver(result: CallToolResult): CallToolResult {
   const text: string = result.content[0].text as string;
+  const parsed = JSON.parse(text);
 
-  if (text.includes('error')) {
-    return McpResponse(JSON.stringify({ error: text }));
+  // Check for errors in the parsed response
+  if (parsed.error) {
+    return result;
   }
-
-  const match = text.match(/\n([\s\S]*)$/);
-  const jsonPart = match ? match[1] : text;
-  const parsed = JSON.parse(jsonPart);
+  
   const arr = Array.isArray(parsed) ? parsed : [];
 
   /**

@@ -11,12 +11,13 @@ import { McpResponse } from '../../../utils/index.js';
 export function smartContractResolver(result: CallToolResult): CallToolResult {
   const text: string = result.content[0].text as string;
 
-  if (text.includes('error')) {
-    return McpResponse(JSON.stringify({ error: text }));
-  }
-
   try {
     const parsed = JSON.parse(text);
+
+    // Check for errors in the parsed response
+    if (parsed.error) {
+      return result;
+    }
 
     // Extract only the ABI field from the response
     const abi = parsed?.abi;
@@ -50,13 +51,14 @@ export function smartContractResolver(result: CallToolResult): CallToolResult {
 export function searchContractsResolver(result: CallToolResult): CallToolResult {
   const text: string = result.content[0].text as string;
 
-  if (text.includes('error')) {
-    return McpResponse(JSON.stringify({ error: text }));
-  }
-
   try {
     const parsed = JSON.parse(text);
 
+    // Check for errors in the parsed response
+    if (parsed.error) {
+      return result;
+    }
+    
     // Handle both array responses and paginated responses
     const _contracts = Array.isArray(parsed) ? parsed : parsed?.items || [];
     const contracts = _contracts.slice(0, 5);
