@@ -42,6 +42,11 @@ export interface AssociationEntry {
  */
 export function associationsResolver(result: CallToolResult): CallToolResult {
   const text: string = result.content[0].text as string;
+
+  if (text.includes('error')) {
+    return McpResponse(JSON.stringify({ error: text }));
+  }
+
   const match = text.match(/\n([\s\S]*)$/);
   const jsonPart = match ? match[1] : text;
   const parsed = JSON.parse(jsonPart);

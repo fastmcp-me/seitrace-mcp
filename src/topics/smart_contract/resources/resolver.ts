@@ -11,6 +11,10 @@ import { McpResponse } from '../../../utils/index.js';
 export function smartContractResolver(result: CallToolResult): CallToolResult {
   const text: string = result.content[0].text as string;
 
+  if (text.includes('error')) {
+    return McpResponse(JSON.stringify({ error: text }));
+  }
+
   try {
     const parsed = JSON.parse(text);
 
@@ -45,6 +49,10 @@ export function smartContractResolver(result: CallToolResult): CallToolResult {
  */
 export function searchContractsResolver(result: CallToolResult): CallToolResult {
   const text: string = result.content[0].text as string;
+
+  if (text.includes('error')) {
+    return McpResponse(JSON.stringify({ error: text }));
+  }
 
   try {
     const parsed = JSON.parse(text);
