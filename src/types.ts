@@ -19,10 +19,10 @@ export interface McpToolDefinition {
   securityRequirements: any[];
   // Optional static response for local actions (no HTTP call)
   staticResponse?: any;
-  // Execution handler type: 'api' uses HTTP, 'rpc' JSON-RPC, 'lcd' for Cosmos LCD, 'graphql' (future), or null for static
-  executor?: 'api' | 'rpc' | 'lcd' | 'graphql' | 'gateway' | null;
-  // Snippet generator type: 'oas' for OpenAPI-based snippet, 'rpc' for JSON-RPC, 'general' for plain HTTP, or null for unsupported
-  snippetGenerator?: 'oas' | 'rpc' | 'general' | null;
+  // Execution handler type: 'api' uses HTTP, 'rpc' JSON-RPC, 'lcd' for Cosmos LCD, 'graphql' (future), 'ethers' for EVM contract calls, or null for static
+  executor?: 'api' | 'rpc' | 'lcd' | 'graphql' | 'gateway' | 'ethers' | null;
+  // Snippet generator type: 'oas' for OpenAPI-based snippet, 'rpc' for JSON-RPC, 'general' for plain HTTP, 'ethers' for contract calls, or null for unsupported
+  snippetGenerator?: 'oas' | 'rpc' | 'general' | 'ethers' | null;
   // Optional resolver id to post-process raw responses
   resolver?: 'associations' | string;
 }

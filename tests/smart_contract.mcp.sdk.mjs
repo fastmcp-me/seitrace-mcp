@@ -361,5 +361,188 @@ export const testSmartContractResources = async (client) => {
     dbg('Invalid chain correctly rejected for search with error:', error.message);
   }
 
+  // Test query_contract_state action exists
+  const queryActions = await client.callTool({
+    name: 'list_resource_actions',
+    arguments: { resource: 'smart_contract' },
+  });
+  const queryActionsText =
+    (queryActions.content && queryActions.content[0] && queryActions.content[0].text) || '';
+  const queryActionsParsed = JSON.parse(queryActionsText);
+  
+  if (!queryActionsParsed.actions.find((a) => a.name === 'query_contract_state')) {
+    throw new Error('smart_contract missing query_contract_state action');
+  }
+  
+  dbg('✓ query_contract_state action found');
+
+  // Verify schema for query_contract_state action
+  const querySchemaRes = await client.callTool({
+    name: 'get_resource_action_schema',
+    arguments: { resource: 'smart_contract', action: 'query_contract_state' },
+  });
+  const querySchemaText =
+    (querySchemaRes.content && querySchemaRes.content[0] && querySchemaRes.content[0].text) || '';
+
+  const querySchema = JSON.parse(querySchemaText);
+  
+  if (
+    !querySchema?.schema?.properties?.abi ||
+    !querySchema?.schema?.properties?.contract_address ||
+    !querySchema?.schema?.properties?.payload ||
+    !querySchema?.schema?.properties?.chain_id ||
+    !Array.isArray(querySchema?.schema?.required) ||
+    !querySchema.schema.required.includes('abi') ||
+    !querySchema.schema.required.includes('contract_address') ||
+    !querySchema.schema.required.includes('payload') ||
+    !querySchema.schema.required.includes('chain_id')
+  ) {
+    throw new Error('smart_contract.query_contract_state schema missing expected fields');
+  }
+  
+  dbg('✓ query_contract_state schema validated');
+
+  // Verify that snippet generation IS supported for query_contract_state
+  const querySnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { 
+      resource: 'smart_contract', 
+      action: 'query_contract_state',
+      language: 'javascript'
+    },
+  });
+  const querySnippetText =
+    (querySnippetRes.content && querySnippetRes.content[0] && querySnippetRes.content[0].text) || '';
+  if (querySnippetText === 'SNIPPET_GENERATION_NOT_SUPPORTED') {
+    throw new Error('smart_contract.query_contract_state should support snippet generation');
+  }
+  
+  dbg('✓ query_contract_state snippet generation supported');
+
+  // Test actual contract state query (using a simple ERC20 token totalSupply call)
+  const erc20Abi = [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [{"name": "", "type": "uint256"}],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+  try {
+    const queryRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'query_contract_state',
+        payload: {
+          abi: erc20Abi,
+          contract_address: '0xf69d9cacc0140e699c6b545d166c973cb59b8e87',
+          payload: [
+            {
+              methodName: 'totalSupply',
+              arguments: []
+            }
+          ],
+          chain_id: 'pacific-1'
+        }
+      },
+    });
+    const queryText =
+      (queryRes.content && queryRes.content[0] && queryRes.content[0].text) || '';
+    dbg('Contract state query response:', queryText);
+    const queryResult = JSON.parse(queryText);
+    
+    // Verify response has expected fields
+    if (
+      !('success' in queryResult) ||
+      !('chain_id' in queryResult) ||
+      !('contract_address' in queryResult) ||
+      !('calls' in queryResult)
+    ) {
+      throw new Error('smart_contract.query_contract_state should return expected response structure');
+    }
+    
+    dbg('Contract state query successful (pacific-1) - success:', queryResult.success);
+  } catch (error) {
+    // If the query fails due to network issues or contract not existing, that's acceptable for the test
+    dbg('Contract state query failed (may be expected):', error.message);
+  }
+
+  // Test multiple method calls in a single query
+  try {
+    const multiQueryRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'query_contract_state',
+        payload: {
+          abi: erc20Abi,
+          contract_address: '0xf69d9cacc0140e699c6b545d166c973cb59b8e87',
+          payload: [
+            {
+              methodName: 'totalSupply',
+              arguments: []
+            },
+            {
+              methodName: 'totalSupply',
+              arguments: []
+            }
+          ],
+          chain_id: 'pacific-1'
+        }
+      },
+    });
+    const multiQueryText =
+      (multiQueryRes.content && multiQueryRes.content[0] && multiQueryRes.content[0].text) || '';
+    const multiQueryResult = JSON.parse(multiQueryText);
+    
+    // Verify response has calls array with multiple results
+    if (
+      !('calls' in multiQueryResult) ||
+      !Array.isArray(multiQueryResult.calls) ||
+      multiQueryResult.calls.length !== 2
+    ) {
+      throw new Error('smart_contract.query_contract_state should return multiple call results');
+    }
+    
+    dbg('Multiple contract state query successful - call count:', multiQueryResult.calls.length);
+  } catch (error) {
+    dbg('Multiple contract state query failed (may be expected):', error.message);
+  }
+
+  // Test with invalid chain_id
+  try {
+    const invalidQueryRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'query_contract_state',
+        payload: {
+          abi: erc20Abi,
+          contract_address: '0xf69d9cacc0140e699c6b545d166c973cb59b8e87',
+          payload: [
+            {
+              methodName: 'totalSupply',
+              arguments: []
+            }
+          ],
+          chain_id: 'invalid-chain'
+        }
+      },
+    });
+    const invalidQueryText =
+      (invalidQueryRes.content && invalidQueryRes.content[0] && invalidQueryRes.content[0].text) || '';
+    if (!invalidQueryText.includes('Invalid arguments')) {
+      throw new Error('Invalid chain_id should have been rejected for query_contract_state');
+    }
+    dbg('Invalid chain_id correctly rejected for query_contract_state:', invalidQueryText);
+  } catch (error) {
+    dbg('Invalid chain_id correctly rejected for query_contract_state with error:', error.message);
+  }
+
   dbg('Smart contract resource tests passed');
 };

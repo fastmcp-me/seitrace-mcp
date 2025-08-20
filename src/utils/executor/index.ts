@@ -5,9 +5,10 @@ import { executeApiTool } from './api_executor.js';
 import { executeGatewayTool } from './gateway_executor.js';
 import { executeRpcTool } from './rpc_executor.js';
 import { executeLcdTool } from './lcd_executor.js';
+import { executeEthersTool } from './ethers_executor.js';
 
 // Executor registry and getter (typed params)
-export type ExecutorType = 'api' | 'rpc' | 'lcd' | 'graphql' | 'gateway';
+export type ExecutorType = 'api' | 'rpc' | 'lcd' | 'graphql' | 'gateway' | 'ethers';
 
 /**
  * Parameters for the API executor.
@@ -40,6 +41,7 @@ const EXECUTOR_MAP: Record<ExecutorType, Executor> = {
     throw new Error('UNSUPPORTED_EXECUTOR');
   },
   gateway: (params: any) => executeGatewayTool(params.toolName, params.definition, params.toolArgs),
+  ethers: (params: any) => executeEthersTool(params.toolName, params.definition, params.toolArgs),
 };
 
 /**

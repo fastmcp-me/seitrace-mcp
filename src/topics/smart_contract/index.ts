@@ -8,6 +8,8 @@ import {
   getExecutor,
   McpResponse,
   withMcpResponse,
+  SNIPPET_GENERATOR_MAP,
+  SUPPORTED_GENERAL_SNIPPET_LANGUAGES,
 } from '../../utils/index.js';
 import { McpGroupedToolDefinition } from '../../types.js';
 import { GATEWAY_API_BASE_URLS } from '../../constants.js';
@@ -88,13 +90,33 @@ export class SmartContractTopic implements ITopic<SmartContractToolArgs> {
 
   /**
    * Generate a code snippet for invoking a resource action.
-   * This always returns "SNIPPET_GENERATION_NOT_SUPPORTED" as requested.
-   * @param _toolArgs Object containing `resource`, `action`, and `language`.
-   * @returns MCP text content indicating snippet generation is not supported.
+   * Supports snippet generation for actions that have snippetGenerator enabled.
+   * @param toolArgs Object containing `resource`, `action`, and `language`.
+   * @returns MCP text content with snippet or not supported message.
    */
-  public getResourceActionSnippet(_toolArgs: SmartContractToolArgs) {
+  public getResourceActionSnippet(toolArgs: SmartContractToolArgs) {
+    const { resource, action, language, payload } = toolArgs;
     return withMcpResponse<CallToolResult>(async () => {
-      return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      const foundAction = findAction(this.getResources(), resource, action!);
+
+      const snippetGen = (foundAction as any).snippetGenerator;
+      if (!snippetGen) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+
+      // Use appropriate generator for the action
+      const generator = (SNIPPET_GENERATOR_MAP as any)[snippetGen];
+      if (!generator) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      
+      const supported = SUPPORTED_GENERAL_SNIPPET_LANGUAGES;
+      if (typeof language !== 'string' || !supported.includes(language as any)) {
+        return McpResponse(
+          `Unsupported or missing language '${language}'. Supported languages: ${supported.join(
+            ', '
+          )}`
+        );
+      }
+      
+      const snippet = generator(foundAction as any, action!, language as any, payload as any);
+      return McpResponse(JSON.stringify({ resource, action, language, snippet }));
     });
   }
 

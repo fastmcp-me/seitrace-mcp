@@ -2,7 +2,7 @@ import { McpToolDefinition } from '../../../types.js';
 
 // Short, LLM-friendly description of this resource
 export const RESOURCE_DESCRIPTION =
-  'Query smart contract state, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1).';
+  'Query smart contract state via Multicall3, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1).';
 
 /**
  * Smart Contract endpoint definition
@@ -92,6 +92,68 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       executor: 'api',
       resolver: 'searchContracts',
       snippetGenerator: null, // Explicitly disable snippet generation as requested
+    },
+  ],
+  [
+    'Controller-queryContractState',
+    {
+      name: 'Controller-queryContractState',
+      description:
+        'Query smart contract state using Multicall3 via EVM RPC. Takes ABI, contract address, method call payload, and chain ID. Uses ethers.js to execute contract calls and decode responses. Supports snippet generation.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          abi: {
+            type: 'array',
+            description: 'Contract ABI as JSON array',
+            items: {
+              type: 'object',
+            },
+          },
+          contract_address: {
+            type: 'string',
+            description: 'EVM contract address (0x-prefixed hex string)',
+            pattern: '^0x[a-fA-F0-9]{40}$',
+          },
+          payload: {
+            type: 'array',
+            description: 'Array of method call payloads for batch execution',
+            items: {
+              type: 'object',
+              properties: {
+                methodName: {
+                  type: 'string',
+                  description: 'Contract method name to call',
+                },
+                arguments: {
+                  type: 'array',
+                  description: 'Array of arguments for the method call',
+                  items: {},
+                },
+              },
+              required: ['methodName'],
+              additionalProperties: false,
+            },
+            minItems: 1,
+          },
+          chain_id: {
+            type: 'string',
+            description: 'Seitrace network chain identifier',
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
+            default: 'pacific-1',
+          },
+        },
+        required: ['abi', 'contract_address', 'payload', 'chain_id'],
+        additionalProperties: false,
+      },
+      method: 'post',
+      pathTemplate: '/multicall',
+      executionParameters: [],
+      requestBodyContentType: 'application/json',
+      securityRequirements: [],
+      executor: 'ethers',
+      resolver: undefined,
+      snippetGenerator: 'ethers', // Use ethers snippet generator for contract interactions
     },
   ],
 ]);

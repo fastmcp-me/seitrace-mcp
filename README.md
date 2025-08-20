@@ -36,7 +36,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 **Smart Contract**
 
-- `smart_contract` — Query smart contract state, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1). Includes optimized responses for ABI download and contract search.
+- `smart_contract` — Query smart contract state via Multicall3, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1). Includes ethers.js integration for EVM method calls and optimized responses.
 
 ## Getting started
 
