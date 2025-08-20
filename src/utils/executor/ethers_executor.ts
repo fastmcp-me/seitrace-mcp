@@ -118,7 +118,7 @@ export const executeEthersTool = async (
 
     try {
       // Execute the multicall
-      const [blockNumber, returnData] = await multicall.aggregate(calls);
+      const [blockNumber, returnData] = await multicall.aggregate.call(calls);
 
       // Decode all return data
       const results = returnData.map((data: string, index: number) => {
