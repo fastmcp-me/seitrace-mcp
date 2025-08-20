@@ -12,7 +12,7 @@ import { McpResponse } from '../utils/index.js';
 export const invokeResourceActionHandler = async (toolArgs: ToolArgs): Promise<CallToolResult> => {
   const { resource, action } = toolArgs;
   const topicKey = resource.split('_')[0];
-  const foundResource = TOPIC_KEY_MAP[topicKey];
+  const foundResource = TOPIC_KEY_MAP[topicKey] || TOPIC_KEY_MAP[resource];
 
   /**
    * Check if the resource exists

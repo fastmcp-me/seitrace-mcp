@@ -1,6 +1,6 @@
 <img src="https://assets.seitrace.com/seitrace-mcp.gif?v=10" width="1280"></img>
 
-# Seitrace MCP 🚀
+# Seitrace MCP 
 
 The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
@@ -34,6 +34,9 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 - `insights_cw721` — Query CW721 tokens: info, instances, balances, holders, transfers.
 - `insights_smart_contract` — Query smart contract details.
 
+**Smart Contract**
+
+- `smart_contract` — Download smart contract ABI from Seitrace networks (Pacific-1, Atlantic-2, Arctic-1).
 
 ## Getting started
 

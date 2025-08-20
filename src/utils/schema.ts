@@ -16,7 +16,8 @@ export function camelToSnake(input: string): string {
  * Utility: from Controller class name to tool name (strip Controller + Token, snake_case, lowercase)
  */
 export function controllerNameToToolName(controllerName: string): string {
-  const stripped = controllerName.replace(/Controller$/, '').replace(/Token/g, '');
+  const stripped = controllerName.replace(/Controller$/, '').replace(/Token$/, '');
+  if (!stripped) return '';
   return camelToSnake(stripped);
 }
 

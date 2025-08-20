@@ -1,8 +1,10 @@
 import { ITopic } from './base.js';
 import { InsightsTopic } from './insights/index.js';
 import { GeneralTopic } from './general/index.js';
+import { SmartContractTopic } from './smart_contract/index.js';
 import { INSIGHTS_RESOURCE_DESCRIPTION_MAP } from './insights/definition.js';
 import { GENERAL_RESOURCE_DESCRIPTION_MAP } from './general/definition.js';
+import { SMART_CONTRACT_RESOURCE_DESCRIPTION_MAP } from './smart_contract/definition.js';
 
 /**
  * Declare topic instance.
@@ -11,13 +13,14 @@ import { GENERAL_RESOURCE_DESCRIPTION_MAP } from './general/definition.js';
 // AVAILABLE_TOPICS and TOPIC_KEY_MAP.
 const insights = new InsightsTopic();
 const general = new GeneralTopic();
+const smartContract = new SmartContractTopic();
 
 /**
  * List all available topics. Will be appended to as new topics are added.
  */
 // List of all topics. Used by the list_resources handler to aggregate
 // resource names across topics.
-export const AVAILABLE_TOPICS: ITopic[] = [insights, general];
+export const AVAILABLE_TOPICS: ITopic[] = [insights, general, smartContract];
 
 /**
  * Map resource names to their corresponding topic instances.
@@ -28,6 +31,7 @@ export const AVAILABLE_TOPICS: ITopic[] = [insights, general];
 export const TOPIC_KEY_MAP: Record<string, ITopic> = {
   [insights.TOPIC_KEY]: insights,
   [general.TOPIC_KEY]: general,
+  [smartContract.TOPIC_KEY]: smartContract,
 };
 
 /**
@@ -36,4 +40,5 @@ export const TOPIC_KEY_MAP: Record<string, ITopic> = {
 export const RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
   ...INSIGHTS_RESOURCE_DESCRIPTION_MAP,
   ...GENERAL_RESOURCE_DESCRIPTION_MAP,
+  ...SMART_CONTRACT_RESOURCE_DESCRIPTION_MAP,
 };

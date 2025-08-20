@@ -7,6 +7,13 @@ export const INSIGHTS_API_BASE_URL = 'https://seitrace.com/insights';
 // Base URL used by the 'general' topic (e.g., faucet). This points to the workspace dev API.
 export const GENERAL_API_BASE_URL = 'https://workspace-api.seitrace.com';
 
+// Define the API base URLs for the smart contract service by chain
+export const GATEWAY_API_BASE_URLS = {
+  'pacific-1': 'https://pacific-1-api.seitrace.com',
+  'atlantic-2': 'https://atlantic-2-api.seitrace.com',
+  'arctic-1': 'https://arctic-1-api.seitrace.com',
+} as const;
+
 /**
  * Tool names
  */

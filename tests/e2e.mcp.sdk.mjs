@@ -11,6 +11,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { testToolList } from './tool_list.mcp.sdk.mjs';
 import { testInsightsResouces } from './insights.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
+import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
 
 async function main() {
   const fileName = fileURLToPath(import.meta.url);
@@ -32,6 +33,9 @@ async function main() {
 
     // Test general resources
     await testGeneralResources(client);
+
+    // Test smart contract resources
+    await testSmartContractResources(client);
 
     console.log(
       'E2E PASS: root resource flow and positive-path ' +
