@@ -1,6 +1,6 @@
 {
   "name": "@seitrace/mcp",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "description": "Seitrace Insights MCP",
   "type": "module",
   "main": "build/index.js",

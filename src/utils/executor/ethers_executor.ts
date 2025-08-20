@@ -9,7 +9,7 @@ import { getZodSchemaFromJsonSchema } from '../schema.js';
 // Chain ID to RPC URL mapping for Seitrace networks
 const CHAIN_RPC_MAP: Record<string, string> = {
   'pacific-1': 'https://evm-rpc.sei-apis.com',
-  'atlantic-2': 'https://evm-rpc-testnet.sei-apis.com', 
+  'atlantic-2': 'https://evm-rpc-testnet.sei-apis.com',
   'arctic-1': 'https://evm-rpc-arctic-1.sei-apis.com',
 };
 
@@ -19,33 +19,33 @@ const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
 // Multicall3 ABI (using aggregate3 for better error handling)
 const MULTICALL3_ABI = [
   {
-    "inputs": [
+    inputs: [
       {
-        "components": [
-          {"internalType": "address", "name": "target", "type": "address"},
-          {"internalType": "bool", "name": "allowFailure", "type": "bool"},
-          {"internalType": "bytes", "name": "callData", "type": "bytes"}
+        components: [
+          { internalType: 'address', name: 'target', type: 'address' },
+          { internalType: 'bool', name: 'allowFailure', type: 'bool' },
+          { internalType: 'bytes', name: 'callData', type: 'bytes' },
         ],
-        "internalType": "struct Multicall3.Call3[]",
-        "name": "calls",
-        "type": "tuple[]"
-      }
+        internalType: 'struct Multicall3.Call3[]',
+        name: 'calls',
+        type: 'tuple[]',
+      },
     ],
-    "name": "aggregate3",
-    "outputs": [
+    name: 'aggregate3',
+    outputs: [
       {
-        "components": [
-          {"internalType": "bool", "name": "success", "type": "bool"},
-          {"internalType": "bytes", "name": "returnData", "type": "bytes"}
+        components: [
+          { internalType: 'bool', name: 'success', type: 'bool' },
+          { internalType: 'bytes', name: 'returnData', type: 'bytes' },
         ],
-        "internalType": "struct Multicall3.Result[]",
-        "name": "returnData",
-        "type": "tuple[]"
-      }
+        internalType: 'struct Multicall3.Result[]',
+        name: 'returnData',
+        type: 'tuple[]',
+      },
     ],
-    "stateMutability": "payable",
-    "type": "function"
-  }
+    stateMutability: 'payable',
+    type: 'function',
+  },
 ];
 
 /**
@@ -112,7 +112,11 @@ export const executeEthersTool = async (
     // Get RPC URL for the chain
     const rpcUrl = CHAIN_RPC_MAP[chain_id];
     if (!rpcUrl) {
-      return McpResponse(`Unsupported chain_id: ${chain_id}. Supported chains: ${Object.keys(CHAIN_RPC_MAP).join(', ')}`);
+      return McpResponse(
+        JSON.stringify({
+          error: `Unsupported chain_id: ${chain_id}. Supported chains: ${Object.keys(CHAIN_RPC_MAP).join(', ')}`,
+        })
+      );
     }
 
     // Create provider
@@ -133,14 +137,16 @@ export const executeEthersTool = async (
         calls.push({
           target: contract_address,
           allowFailure: true, // Allow individual calls to fail without breaking the batch
-          callData: encodedCall
+          callData: encodedCall,
         });
         callDetails.push({
           methodName: call.methodName,
-          arguments: functionArgs
+          arguments: functionArgs,
         });
       } catch (error) {
-        return McpResponse(`Failed to encode function call for ${call.methodName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        return McpResponse(
+          `Failed to encode function call for ${call.methodName}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -155,35 +161,42 @@ export const executeEthersTool = async (
       const blockNumber = await provider.getBlockNumber();
 
       // Decode all return data - aggregate3 returns array of {success: bool, returnData: bytes}
-      const results = returnData.map((result: { success: boolean; returnData: string }, index: number) => {
-        const callDetail = callDetails[index];
-        
-        if (!result.success) {
-          return {
-            success: false,
-            method: callDetail.methodName,
-            arguments: callDetail.arguments,
-            error: 'Call reverted'
-          };
-        }
+      const results = returnData.map(
+        (result: { success: boolean; returnData: string }, index: number) => {
+          const callDetail = callDetails[index];
 
-        try {
-          const decodedResult = contractInterface.decodeFunctionResult(callDetail.methodName, result.returnData);
-          return {
-            success: true,
-            method: callDetail.methodName,
-            arguments: callDetail.arguments,
-            result: convertBigIntToString(decodedResult.length === 1 ? decodedResult[0] : decodedResult)
-          };
-        } catch (error) {
-          return {
-            success: false,
-            method: callDetail.methodName,
-            arguments: callDetail.arguments,
-            error: error instanceof Error ? error.message : 'Unknown decode error'
-          };
+          if (!result.success) {
+            return {
+              success: false,
+              method: callDetail.methodName,
+              arguments: callDetail.arguments,
+              error: 'Call reverted',
+            };
+          }
+
+          try {
+            const decodedResult = contractInterface.decodeFunctionResult(
+              callDetail.methodName,
+              result.returnData
+            );
+            return {
+              success: true,
+              method: callDetail.methodName,
+              arguments: callDetail.arguments,
+              result: convertBigIntToString(
+                decodedResult.length === 1 ? decodedResult[0] : decodedResult
+              ),
+            };
+          } catch (error) {
+            return {
+              success: false,
+              method: callDetail.methodName,
+              arguments: callDetail.arguments,
+              error: error instanceof Error ? error.message : 'Unknown decode error',
+            };
+          }
         }
-      });
+      );
 
       // Format the response
       const response = {
@@ -191,36 +204,42 @@ export const executeEthersTool = async (
         blockNumber: blockNumber.toString(),
         chain_id,
         contract_address,
-        calls: results
+        calls: results,
       };
 
       return McpResponse(JSON.stringify(response, null, 2));
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return McpResponse(
-        JSON.stringify({
-          success: false,
-          error: 'Multicall execution failed',
-          details: errorMessage,
-          chain_id,
-          contract_address,
-          calls: callDetails.map(detail => ({
-            method: detail.methodName,
-            arguments: detail.arguments
-          }))
-        }, null, 2)
+        JSON.stringify(
+          {
+            success: false,
+            error: 'Multicall execution failed',
+            details: errorMessage,
+            chain_id,
+            contract_address,
+            calls: callDetails.map((detail) => ({
+              method: detail.methodName,
+              arguments: detail.arguments,
+            })),
+          },
+          null,
+          2
+        )
       );
     }
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return McpResponse(
-      JSON.stringify({
-        success: false,
-        error: 'Ethers executor failed',
-        details: errorMessage
-      }, null, 2)
+      JSON.stringify(
+        {
+          success: false,
+          error: 'Ethers executor failed',
+          details: errorMessage,
+        },
+        null,
+        2
+      )
     );
   }
 };

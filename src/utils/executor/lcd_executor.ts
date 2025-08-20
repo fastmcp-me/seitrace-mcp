@@ -49,11 +49,19 @@ export const executeLcdTool = async (
         ?.staticResponse;
       const chainCfg = conn?.[chainId];
       if (!chainCfg) {
-        return McpResponse(`Unknown chain_id '${chainId}'. Expected pacific-1 or atlantic-2.`);
+        return McpResponse(
+          JSON.stringify({
+            error: `Unknown chain_id '${chainId}'. Supported chains: ${Object.keys(rpcEndpointMap.get('RpcLcdController-getConnectionDetails')?.staticResponse || {}).join(', ')}`,
+          })
+        );
       }
       const arr = chainCfg?.cosmos?.lcd;
       if (!Array.isArray(arr) || !arr.length) {
-        return McpResponse(`No Cosmos LCD endpoints configured for chain '${chainId}'.`);
+        return McpResponse(
+          JSON.stringify({
+            error: `No Cosmos LCD endpoints configured for chain '${chainId}'.`,
+          })
+        );
       }
       baseUrl = String(arr[0]);
     }

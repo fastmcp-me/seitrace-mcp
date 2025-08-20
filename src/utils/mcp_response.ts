@@ -29,6 +29,8 @@ export const withMcpResponse = <T extends CallToolResult>(
       return result;
     })
     .catch(async (e) => {
-      return McpResponse(`Error occurred: ${e.message}. Try contact dev@cavies.xyz`);
+      return McpResponse(
+        JSON.stringify({ error: `Error occurred: ${e.message}. Try contact dev@cavies.xyz` })
+      );
     });
 };

@@ -18,7 +18,7 @@ export const listResourceActionsHandler = async (toolArgs: ToolArgs): Promise<Ca
    * Check if the resource exists
    */
   if (!foundResource || !(await foundResource.getResources()).has(resource)) {
-    return McpResponse(`Unknown or missing resource '${resource}'.`);
+    return McpResponse(JSON.stringify({ error: `Unknown or missing resource '${resource}'.` }));
   }
 
   /**

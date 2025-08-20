@@ -57,7 +57,9 @@ async function main() {
         // Check if the tool is known
         if (!Object.keys(handlerMap).includes(toolName)) {
           console.error(`Error: Unknown tool requested: ${toolName}`);
-          return McpResponse(`Error: Unknown tool requested: ${toolName}`);
+          return McpResponse(
+            JSON.stringify({ error: `Error: Unknown tool requested: ${toolName}` })
+          );
         }
         // Call the appropriate handler
         const handler = (handlerMap as any)[toolName];
