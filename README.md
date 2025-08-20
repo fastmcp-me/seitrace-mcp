@@ -36,7 +36,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 **Smart Contract**
 
-- `smart_contract` — Download smart contract ABI from Seitrace networks (Pacific-1, Atlantic-2, Arctic-1).
+- `smart_contract` — Get smart contract details, or download smart contract ABI from Seitrace (Pacific-1, Atlantic-2, Arctic-1).
 
 ## Getting started
 
