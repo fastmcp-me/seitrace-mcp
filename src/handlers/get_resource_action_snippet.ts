@@ -25,7 +25,7 @@ export const getResourceActionSnippetHandler = async (
     !(await foundResource.hasResourceAction(resource, action!))
   ) {
     return McpResponse(
-      `Unknown or missing resource action '${action!}' for resource '${resource}'.`
+      JSON.stringify({ error: `Unknown or missing resource '${resource}' or action '${action}'.` })
     );
   }
 

@@ -47,5 +47,5 @@ export function formatApiError(error: any): CallToolResult {
     errorMessage = 'Unexpected error: ' + String(error);
   }
 
-  return McpResponse(errorMessage);
+  return McpResponse(JSON.stringify({ error: errorMessage }));
 }

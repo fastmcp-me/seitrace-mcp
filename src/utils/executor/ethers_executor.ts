@@ -93,11 +93,13 @@ export const executeEthersTool = async (
         const validationErrorMessage = `Invalid arguments for tool '${toolName}': ${error.errors
           .map((e) => `${e.path.join('.')} (${e.code}): ${e.message}`)
           .join(', ')}`;
-        return McpResponse(validationErrorMessage);
+        return McpResponse(JSON.stringify({ error: validationErrorMessage }));
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return McpResponse(
-          `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+          JSON.stringify({
+            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`,
+          })
         );
       }
     }
@@ -145,7 +147,9 @@ export const executeEthersTool = async (
         });
       } catch (error) {
         return McpResponse(
-          `Failed to encode function call for ${call.methodName}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          JSON.stringify({
+            error: `Failed to encode function call for ${call.methodName}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          })
         );
       }
     }
@@ -207,39 +211,31 @@ export const executeEthersTool = async (
         calls: results,
       };
 
-      return McpResponse(JSON.stringify(response, null, 2));
+      return McpResponse(JSON.stringify(response));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return McpResponse(
-        JSON.stringify(
-          {
-            success: false,
-            error: 'Multicall execution failed',
-            details: errorMessage,
-            chain_id,
-            contract_address,
-            calls: callDetails.map((detail) => ({
-              method: detail.methodName,
-              arguments: detail.arguments,
-            })),
-          },
-          null,
-          2
-        )
+        JSON.stringify({
+          success: false,
+          error: 'Multicall execution failed',
+          details: errorMessage,
+          chain_id,
+          contract_address,
+          calls: callDetails.map((detail) => ({
+            method: detail.methodName,
+            arguments: detail.arguments,
+          })),
+        })
       );
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return McpResponse(
-      JSON.stringify(
-        {
-          success: false,
-          error: 'Ethers executor failed',
-          details: errorMessage,
-        },
-        null,
-        2
-      )
+      JSON.stringify({
+        success: false,
+        error: 'Ethers executor failed',
+        details: errorMessage,
+      })
     );
   }
 };

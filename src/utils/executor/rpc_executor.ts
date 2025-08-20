@@ -37,11 +37,17 @@ export const executeRpcTool = async (
         const validationErrorMessage = `Invalid arguments for tool '${toolName}': ${error.errors
           .map((e) => `${e.path.join('.')} (${e.code}): ${e.message}`)
           .join(', ')}`;
-        return McpResponse(validationErrorMessage);
+        return McpResponse(
+          JSON.stringify({
+            error: validationErrorMessage,
+          })
+        );
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return McpResponse(
-          `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+          JSON.stringify({
+            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`,
+          })
         );
       }
     }
@@ -58,7 +64,10 @@ export const executeRpcTool = async (
     if (!url) {
       if (!chainId) {
         return McpResponse(
-          "Missing 'endpoint' or 'chain_id'. Provide a custom endpoint or one of: pacific-1, atlantic-2."
+          JSON.stringify({
+            error:
+              "Missing 'endpoint' or 'chain_id'. Provide a custom endpoint or one of: pacific-1, atlantic-2.",
+          })
         );
       }
       const conn = (rpcEndpointMap.get('RpcLcdController-getConnectionDetails') as any)
@@ -66,14 +75,18 @@ export const executeRpcTool = async (
       const chainCfg = conn?.[chainId];
       if (!chainCfg) {
         return McpResponse(
-          `Unknown chain_id '${chainId}'. Expected pacific-1 or atlantic-2 or arctic-1.`
+          JSON.stringify({
+            error: `Unknown chain_id '${chainId}'. Expected pacific-1 or atlantic-2 or arctic-1.`,
+          })
         );
       }
       const isCosmos = /callCosmosRpc$/i.test(definition.name) || /call_cosmos_rpc$/.test(toolName);
       const arr = isCosmos ? chainCfg?.cosmos?.rpc : chainCfg?.evm?.rpc;
       if (!Array.isArray(arr) || !arr.length) {
         return McpResponse(
-          `No ${isCosmos ? 'Cosmos' : 'EVM'} RPC endpoints configured for chain '${chainId}'.`
+          JSON.stringify({
+            error: `No ${isCosmos ? 'Cosmos' : 'EVM'} RPC endpoints configured for chain '${chainId}'.`,
+          })
         );
       }
       url = String(arr[0]);

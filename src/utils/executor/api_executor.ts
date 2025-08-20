@@ -34,11 +34,13 @@ export const executeApiTool = async (
         const validationErrorMessage = `Invalid arguments for tool '${toolName}': ${error.errors
           .map((e) => `${e.path.join('.')} (${e.code}): ${e.message}`)
           .join(', ')}`;
-        return McpResponse(validationErrorMessage);
+        return McpResponse(JSON.stringify({ error: validationErrorMessage }));
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return McpResponse(
-          `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+          JSON.stringify({
+            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+          })
         );
       }
     }

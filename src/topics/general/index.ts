@@ -98,7 +98,7 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
     const { resource, action, language, payload } = toolArgs;
     return withMcpResponse<CallToolResult>(async () => {
       const foundAction = findAction(this.getResources(), resource, action!);
-  // Language validation is handled per generator below
+      // Language validation is handled per generator below
 
       const snippetGen = (foundAction as any).snippetGenerator;
       if (!snippetGen) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
@@ -167,7 +167,9 @@ export class GeneralTopic implements ITopic<GeneralToolArgs> {
       // Remote-like executors require a payload validated against schema
       if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
         return McpResponse(
-          `Invalid or missing 'payload' for tool 'invokeResourceAction'. Provide an object matching the action schema.`
+          JSON.stringify({
+            error: `Invalid or missing 'payload' for tool 'invokeResourceAction'. Provide an object matching the action schema.`,
+          })
         );
       }
 

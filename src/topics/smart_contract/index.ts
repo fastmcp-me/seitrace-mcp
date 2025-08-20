@@ -100,21 +100,23 @@ export class SmartContractTopic implements ITopic<SmartContractToolArgs> {
       const foundAction = findAction(this.getResources(), resource, action!);
 
       const snippetGen = (foundAction as any).snippetGenerator;
-      if (!snippetGen) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
+      if (!snippetGen)
+        return McpResponse(JSON.stringify({ error: 'SNIPPET_GENERATION_NOT_SUPPORTED' }));
 
       // Use appropriate generator for the action
       const generator = (SNIPPET_GENERATOR_MAP as any)[snippetGen];
-      if (!generator) return McpResponse('SNIPPET_GENERATION_NOT_SUPPORTED');
-      
+      if (!generator)
+        return McpResponse(JSON.stringify({ error: 'SNIPPET_GENERATION_NOT_SUPPORTED' }));
+
       const supported = SUPPORTED_GENERAL_SNIPPET_LANGUAGES;
       if (typeof language !== 'string' || !supported.includes(language as any)) {
         return McpResponse(
-          `Unsupported or missing language '${language}'. Supported languages: ${supported.join(
-            ', '
-          )}`
+          JSON.stringify({
+            error: `Unsupported or missing language '${language}'. Supported languages: ${supported.join(', ')}`,
+          })
         );
       }
-      
+
       const snippet = generator(foundAction as any, action!, language as any, payload as any);
       return McpResponse(JSON.stringify({ resource, action, language, snippet }));
     });
@@ -160,7 +162,9 @@ export class SmartContractTopic implements ITopic<SmartContractToolArgs> {
       // Remote-like executors require a payload validated against schema
       if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
         return McpResponse(
-          `Invalid or missing 'payload' for tool 'invokeResourceAction'. Provide an object matching the action schema.`
+          JSON.stringify({
+            error: `Invalid or missing 'payload' for tool 'invokeResourceAction'. Provide an object matching the action schema.`,
+          })
         );
       }
 
@@ -170,7 +174,9 @@ export class SmartContractTopic implements ITopic<SmartContractToolArgs> {
 
       if (!baseUrl) {
         return McpResponse(
-          `Invalid chain '${chain}'. Supported chains: ${Object.keys(GATEWAY_API_BASE_URLS).join(', ')}`
+          JSON.stringify({
+            error: `Invalid chain '${chain}'. Supported chains: ${Object.keys(GATEWAY_API_BASE_URLS).join(', ')}`,
+          })
         );
       }
 
