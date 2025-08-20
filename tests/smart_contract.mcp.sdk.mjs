@@ -1,4 +1,5 @@
 import { dbg } from './utils.mjs';
+import { testDownloadAbiAction } from './download_abi_test.mjs';
 
 export const testSmartContractResources = async (client) => {
   // Test that smart_contract resource exists and has the expected action
@@ -57,7 +58,8 @@ export const testSmartContractResources = async (client) => {
         resource: 'smart_contract',
         action: 'download_abi',
         payload: {
-          contract_address: '0xf69d9cacc0140e699c6b545d166c973cb59b8e87'
+          contract_address: '0x8d72Fa8b37F8A97CC0cE5Ee4077806e3b63dE9d0',
+          chain: "pacific-1"
         }
       },
     });
@@ -617,6 +619,10 @@ export const testSmartContractResources = async (client) => {
     }
     dbg('maxScraps query failed (may be expected network error):', error.message);
   }
+
+  // Run comprehensive download_abi tests
+  dbg('\n🧪 Running comprehensive download_abi tests...');
+  await testDownloadAbiAction(client);
 
   dbg('Smart contract resource tests passed');
 };
