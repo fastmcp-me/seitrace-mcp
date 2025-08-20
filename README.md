@@ -6,13 +6,13 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 ## Available tools 🧰
 
-**Five tools that form the resource-based interface:**
+**Five tools that form the resource-based interface (use in order 1→2→3→4):**
 
-- `list_resources` — list available resources
-- `list_resource_actions` — list actions for a resource
-- `get_resource_action_schema` — get the JSON Schema for an action
-- `invoke_resource_action` — invoke an action with payload
-- `get_resource_action_snippet` — generate a code snippet to perform a resource action in the specified language, for example, a javascript snippet to call the action with the required parameters
+- `list_resources` — list available resources (start here)
+- `list_resource_actions` — list actions for a resource  
+- `get_resource_action_schema` — **REQUIRED** get the JSON Schema for an action before invoking
+- `invoke_resource_action` — invoke an action with payload matching the schema
+- `get_resource_action_snippet` — (optional) generate a code snippet to perform a resource action in the specified language
 
 **Supported resources**
 
@@ -36,7 +36,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 **Smart Contract**
 
-- `smart_contract` — Query smart contract state via Multicall3, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1). Includes ethers.js integration for EVM method calls and optimized responses.
+- `smart_contract` — Query smart contract state via Multicall3, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1).
 
 ## Getting started
 
@@ -70,7 +70,7 @@ What MCP provides to end users and assistants:
 
 ## Typical Flow 🔁
 
-Using the MCP SDK, drive the resource-based flow via the five tools:
+Using the MCP SDK, drive the resource-based flow via the five tools. **Important:** Always follow this sequence, especially step 3:
 
 ```js
 // 1) Discover available resources
@@ -81,12 +81,14 @@ const resources = await client.callTool({ name: 'list_resouces', arguments: {} }
 const actions = await client.callTool({ name: 'list_resouce_actions', arguments: { resource: 'insights_erc20' } });
 // -> { resource: 'erc20', actions: [{ name, description }, ...] }
 
-// 3) Get the JSON Schema for a specific action
+// 3) **REQUIRED** Get the JSON Schema for a specific action
+// This step is critical - parameter names in descriptions may differ from actual schema
 const schema = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info' } });
-// -> { resource: 'erc20', action: 'get_erc20_token_info', schema }
+// -> { resource: 'insights_erc20', action: 'get_erc20_token_info', schema }
+// The schema reveals exact parameter names like "q" instead of "query", "chain" instead of "chain_id", etc.
 
-// 4) Invoke the action with its payload
-const res = await client.callTool({ name: 'invoke_resource_action', arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', payload: { chain_id: 'pacific-1', contract_address: '0x...' } } });
+// 4) Invoke the action with payload matching the schema structure
+const res = await client.callTool({ name: 'invoke_resource_action', arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', payload: { chain: 'pacific-1', contract_address: '0x...' } } });
 // res.content[0].text -> "API Response (Status: 200):\n{ ... }"
 
 // 5) Optionally, generate a code snippet for an action
