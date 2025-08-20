@@ -1,5 +1,5 @@
 import { jsonSchemaToZod } from 'json-schema-to-zod';
-import z from 'zod';
+import { z } from 'zod';
 
 /**
  * Utility: convert CamelCase or mixedCase to snake_case
@@ -30,17 +30,20 @@ export function controllerNameToToolName(controllerName: string): string {
  */
 export function getZodSchemaFromJsonSchema(jsonSchema: any, toolName: string): z.ZodTypeAny {
   if (typeof jsonSchema !== 'object' || jsonSchema === null) {
-    return z.object({}).passthrough();
+    return z.object({}).strict();
   }
   try {
     const zodSchemaString = jsonSchemaToZod(jsonSchema);
-    const zodSchema = eval(zodSchemaString);
+    // Create a function that has access to z in its scope
+    const schemaFunction = new Function('z', `return ${zodSchemaString}`);
+    const zodSchema = schemaFunction(z);
     if (typeof zodSchema?.parse !== 'function') {
-      throw new Error('Eval did not produce a valid Zod schema.');
+      throw new Error('Generated schema is not a valid Zod schema.');
     }
     return zodSchema as z.ZodTypeAny;
   } catch (err: any) {
     console.error(`Failed to generate/evaluate Zod schema for '${toolName}':`, err);
-    return z.object({}).passthrough();
+    // Return a strict empty object instead of passthrough for better error detection
+    return z.object({}).strict();
   }
 }

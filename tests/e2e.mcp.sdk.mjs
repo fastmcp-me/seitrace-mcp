@@ -12,6 +12,7 @@ import { testToolList } from './tool_list.mcp.sdk.mjs';
 import { testInsightsResouces } from './insights.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
+import { testSchemaValidation, testSearchVerifiedContractsBugCase } from './schema_validation.mcp.sdk.mjs';
 
 async function main() {
   const fileName = fileURLToPath(import.meta.url);
@@ -25,6 +26,9 @@ async function main() {
   await client.connect(transport);
 
   try {
+    // Test schema validation utilities (unit tests)
+    await testSchemaValidation();
+
     // Test tool list
     await testToolList(client);
 
@@ -36,6 +40,9 @@ async function main() {
 
     // Test smart contract resources
     await testSmartContractResources(client);
+
+    // Test the specific bug case that was reported
+    await testSearchVerifiedContractsBugCase(client);
 
     console.log(
       'E2E PASS: root resource flow and positive-path ' +
