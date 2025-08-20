@@ -16,29 +16,59 @@ const CHAIN_RPC_MAP: Record<string, string> = {
 // Multicall3 contract address (same across all EVM chains)
 const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
 
-// Multicall3 ABI (simplified for our use case)
+// Multicall3 ABI (using aggregate3 for better error handling)
 const MULTICALL3_ABI = [
   {
     "inputs": [
       {
         "components": [
           {"internalType": "address", "name": "target", "type": "address"},
+          {"internalType": "bool", "name": "allowFailure", "type": "bool"},
           {"internalType": "bytes", "name": "callData", "type": "bytes"}
         ],
-        "internalType": "struct Multicall3.Call[]",
+        "internalType": "struct Multicall3.Call3[]",
         "name": "calls",
         "type": "tuple[]"
       }
     ],
-    "name": "aggregate",
+    "name": "aggregate3",
     "outputs": [
-      {"internalType": "uint256", "name": "blockNumber", "type": "uint256"},
-      {"internalType": "bytes[]", "name": "returnData", "type": "bytes[]"}
+      {
+        "components": [
+          {"internalType": "bool", "name": "success", "type": "bool"},
+          {"internalType": "bytes", "name": "returnData", "type": "bytes"}
+        ],
+        "internalType": "struct Multicall3.Result[]",
+        "name": "returnData",
+        "type": "tuple[]"
+      }
     ],
     "stateMutability": "payable",
     "type": "function"
   }
 ];
+
+/**
+ * Recursively converts BigInt values to strings for JSON serialization
+ * @param obj The object to convert
+ * @returns The object with BigInt values converted to strings
+ */
+function convertBigIntToString(obj: any): any {
+  if (typeof obj === 'bigint') {
+    return obj.toString();
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToString);
+  }
+  if (obj && typeof obj === 'object') {
+    const converted: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      converted[key] = convertBigIntToString(value);
+    }
+    return converted;
+  }
+  return obj;
+}
 
 /**
  * Executes an ethers tool for contract state queries via Multicall3
@@ -91,8 +121,8 @@ export const executeEthersTool = async (
     // Create contract interface from ABI
     const contractInterface = new ethers.Interface(abi);
 
-    // Encode all function calls
-    const calls: Array<{ target: string; callData: string }> = [];
+    // Encode all function calls for aggregate3
+    const calls: Array<{ target: string; allowFailure: boolean; callData: string }> = [];
     const callDetails: Array<{ methodName: string; arguments: any[] }> = [];
 
     for (const call of payload) {
@@ -102,6 +132,7 @@ export const executeEthersTool = async (
         encodedCall = contractInterface.encodeFunctionData(call.methodName, functionArgs);
         calls.push({
           target: contract_address,
+          allowFailure: true, // Allow individual calls to fail without breaking the batch
           callData: encodedCall
         });
         callDetails.push({
@@ -117,19 +148,32 @@ export const executeEthersTool = async (
     const multicall = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider);
 
     try {
-      // Execute the multicall
-      const [blockNumber, returnData] = await multicall.aggregate.call(calls);
+      // Execute the multicall using aggregate3
+      const returnData = await multicall.aggregate3.staticCall(calls);
 
-      // Decode all return data
-      const results = returnData.map((data: string, index: number) => {
+      // Get current block number separately since aggregate3 doesn't return it
+      const blockNumber = await provider.getBlockNumber();
+
+      // Decode all return data - aggregate3 returns array of {success: bool, returnData: bytes}
+      const results = returnData.map((result: { success: boolean; returnData: string }, index: number) => {
         const callDetail = callDetails[index];
+        
+        if (!result.success) {
+          return {
+            success: false,
+            method: callDetail.methodName,
+            arguments: callDetail.arguments,
+            error: 'Call reverted'
+          };
+        }
+
         try {
-          const decodedResult = contractInterface.decodeFunctionResult(callDetail.methodName, data);
+          const decodedResult = contractInterface.decodeFunctionResult(callDetail.methodName, result.returnData);
           return {
             success: true,
             method: callDetail.methodName,
             arguments: callDetail.arguments,
-            result: decodedResult.length === 1 ? decodedResult[0] : decodedResult
+            result: convertBigIntToString(decodedResult.length === 1 ? decodedResult[0] : decodedResult)
           };
         } catch (error) {
           return {

@@ -49,9 +49,9 @@ const CHAIN_RPC_MAP = ${JSON.stringify(chainRpcMap, null, 2)};
 const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
 const MULTICALL3_ABI = [
   {
-    "inputs": [{"components": [{"name": "target", "type": "address"}, {"name": "callData", "type": "bytes"}], "name": "calls", "type": "tuple[]"}],
-    "name": "aggregate",
-    "outputs": [{"name": "blockNumber", "type": "uint256"}, {"name": "returnData", "type": "bytes[]"}],
+    "inputs": [{"components": [{"name": "target", "type": "address"}, {"name": "allowFailure", "type": "bool"}, {"name": "callData", "type": "bytes"}], "name": "calls", "type": "tuple[]"}],
+    "name": "aggregate3",
+    "outputs": [{"components": [{"name": "success", "type": "bool"}, {"name": "returnData", "type": "bytes"}], "name": "returnData", "type": "tuple[]"}],
     "stateMutability": "payable",
     "type": "function"
   }
@@ -66,25 +66,47 @@ async function queryContractState() {
   // Create contract interface
   const contractInterface = new ethers.Interface(config.abi);
   
-  // Encode function calls
+  // Encode function calls for aggregate3
   const calls = config.payload.map(call => ({
     target: config.contract_address,
+    allowFailure: true,
     callData: contractInterface.encodeFunctionData(call.methodName, call.arguments || [])
   }));
   
-  // Execute multicall
+  // Execute multicall using aggregate3
   const multicall = new ethers.Contract(MULTICALL3_ADDRESS, MULTICALL3_ABI, provider);
-  const [blockNumber, returnData] = await multicall.aggregate(calls);
+  const returnData = await multicall.aggregate3(calls);
+  const blockNumber = await provider.getBlockNumber();
   
   // Decode results
-  const results = returnData.map((data, index) => {
+  const results = returnData.map((result, index) => {
     const call = config.payload[index];
-    const decoded = contractInterface.decodeFunctionResult(call.methodName, data);
-    return {
-      method: call.methodName,
-      arguments: call.arguments || [],
-      result: decoded.length === 1 ? decoded[0] : decoded
-    };
+    
+    if (!result.success) {
+      return {
+        success: false,
+        method: call.methodName,
+        arguments: call.arguments || [],
+        error: 'Call reverted'
+      };
+    }
+
+    try {
+      const decoded = contractInterface.decodeFunctionResult(call.methodName, result.returnData);
+      return {
+        success: true,
+        method: call.methodName,
+        arguments: call.arguments || [],
+        result: decoded.length === 1 ? decoded[0] : decoded
+      };
+    } catch (error) {
+      return {
+        success: false,
+        method: call.methodName,
+        arguments: call.arguments || [],
+        error: error.message
+      };
+    }
   });
   
   return {

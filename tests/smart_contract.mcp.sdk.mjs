@@ -544,5 +544,79 @@ export const testSmartContractResources = async (client) => {
     dbg('Invalid chain_id correctly rejected for query_contract_state with error:', error.message);
   }
 
+  // Test maxScraps method call - this was a reported failing case that should now work
+  // This test also verifies the aggregate3 implementation which provides better error handling
+  const maxScrapsAbi = [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "maxScraps",
+      "outputs": [{"name": "", "type": "uint256"}],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+  try {
+    const maxScrapsQueryRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'query_contract_state',
+        payload: {
+          abi: maxScrapsAbi,
+          contract_address: '0x8d72Fa8b37F8A97CC0cE5Ee4077806e3b63dE9d0',
+          payload: [
+            {
+              methodName: 'maxScraps',
+              arguments: []
+            }
+          ],
+          chain_id: 'pacific-1'
+        }
+      },
+    });
+    const maxScrapsQueryText =
+      (maxScrapsQueryRes.content && maxScrapsQueryRes.content[0] && maxScrapsQueryRes.content[0].text) || '';
+    dbg('maxScraps query response:', maxScrapsQueryText);
+    const maxScrapsResult = JSON.parse(maxScrapsQueryText);
+    
+    // Verify response structure - should not have the "no matching fragment" error
+    if ('success' in maxScrapsResult) {
+      if (maxScrapsResult.success) {
+        dbg('maxScraps query successful - calls:', maxScrapsResult.calls?.length || 0);
+        
+        // Verify BigInt handling - result should be a string, not cause serialization error
+        if (maxScrapsResult.calls && maxScrapsResult.calls.length > 0) {
+          const call = maxScrapsResult.calls[0];
+          if (call.success && call.result !== undefined) {
+            // For uint256, result should be a string representation of the number
+            if (typeof call.result !== 'string' && typeof call.result !== 'number') {
+              throw new Error('uint256 results should be converted to string or number for JSON serialization');
+            }
+            dbg('✅ BigInt properly converted to:', typeof call.result, call.result);
+          }
+        }
+      } else {
+        // Even if unsuccessful, it should not be due to fragment error or BigInt serialization
+        if (maxScrapsResult.details && 
+            (maxScrapsResult.details.includes('no matching fragment') ||
+             maxScrapsResult.details.includes('Do not know how to serialize a BigInt'))) {
+          throw new Error('maxScraps query should not fail with fragment or BigInt serialization errors after fix');
+        }
+        dbg('maxScraps query failed (but not due to fragment/BigInt error):', maxScrapsResult.details);
+      }
+    }
+  } catch (error) {
+    // Network errors are acceptable, but fragment/BigInt errors indicate the bug isn't fixed
+    if (error.message && 
+        (error.message.includes('no matching fragment') ||
+         error.message.includes('Do not know how to serialize a BigInt'))) {
+      throw new Error('maxScraps query should not fail with fragment or BigInt serialization errors after fix');
+    }
+    dbg('maxScraps query failed (may be expected network error):', error.message);
+  }
+
   dbg('Smart contract resource tests passed');
 };

@@ -99,7 +99,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
     {
       name: 'Controller-queryContractState',
       description:
-        'Query smart contract state using Multicall3 via EVM RPC. Takes ABI, contract address, method call payload, and chain ID. Uses ethers.js to execute contract calls and decode responses. Supports snippet generation.',
+        'Query smart contract state using Multicall3.aggregate3 via EVM RPC. Takes ABI, contract address, method call payload, and chain ID. Uses ethers.js to execute batch contract calls with individual failure handling and decode responses. Supports snippet generation.',
       inputSchema: {
         type: 'object',
         properties: {
