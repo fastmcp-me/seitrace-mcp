@@ -16,7 +16,7 @@ export const toolListHandler = () => {
   const listResource: Tool = {
     name: LIST_RESOURCES_TOOL,
     description:
-      'List available resources (e.g., insights_erc20, insights_erc721, insights_native).',
+      'List available resources that are for Sei blockchain (e.g., insights_erc20, insights_erc721, insights_native, insights_erc1155).',
     inputSchema: {
       type: 'object',
       properties: {},
