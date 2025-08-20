@@ -57,7 +57,7 @@ export const toolListHandler = () => {
 
   const invokeResourceAction: Tool = {
     name: INVOKE_RESOURCE_ACTION_TOOL,
-    description: 'Invoke a resource action with a payload matching its schema.',
+    description: 'Invoke a resource action with a payload matching its schema (from get_resource_action_schema response).',
     inputSchema: {
       type: 'object',
       properties: {
