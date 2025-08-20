@@ -2,7 +2,7 @@ import {
   endpointDefinitionMap as smartContractEndpoints,
   RESOURCE_DESCRIPTION as SMART_CONTRACT_DESC,
 } from './resources/definition.js';
-import { smartContractResolver } from './resources/resolver.js';
+import { smartContractResolver, searchContractsResolver } from './resources/resolver.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 /**
@@ -23,4 +23,5 @@ export const SMART_CONTRACT_RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
  */
 export const RESOLVER_MAP: Record<string, (result: CallToolResult) => CallToolResult> = {
   [`smartContract`]: smartContractResolver,
+  [`searchContracts`]: searchContractsResolver,
 };

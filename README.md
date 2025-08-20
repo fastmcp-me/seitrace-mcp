@@ -1,6 +1,6 @@
 <img src="https://assets.seitrace.com/seitrace-mcp.gif?v=10" width="1280"></img>
 
-# Seitrace MCP 
+# Seitrace MCP
 
 The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
@@ -36,7 +36,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 **Smart Contract**
 
-- `smart_contract` — Query smart contract state, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1).
+- `smart_contract` — Query smart contract state, search verified contracts, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1). Includes optimized responses for ABI download and contract search.
 
 ## Getting started
 

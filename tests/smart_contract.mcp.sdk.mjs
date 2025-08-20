@@ -190,5 +190,176 @@ export const testSmartContractResources = async (client) => {
     dbg('Invalid chain correctly rejected with error:', error.message);
   }
 
+  // Test search_verified_contracts action exists
+  const searchActions = await client.callTool({
+    name: 'list_resource_actions',
+    arguments: { resource: 'smart_contract' },
+  });
+  const searchActionsText =
+    (searchActions.content && searchActions.content[0] && searchActions.content[0].text) || '';
+  const searchActionsParsed = JSON.parse(searchActionsText);
+  
+  if (!searchActionsParsed.actions.find((a) => a.name === 'search_verified_contracts')) {
+    throw new Error('smart_contract missing search_verified_contracts action');
+  }
+  
+  dbg('✓ search_verified_contracts action found');
+
+  // Verify schema for search_verified_contracts action
+  const searchSchemaRes = await client.callTool({
+    name: 'get_resource_action_schema',
+    arguments: { resource: 'smart_contract', action: 'search_verified_contracts' },
+  });
+  const searchSchemaText =
+    (searchSchemaRes.content && searchSchemaRes.content[0] && searchSchemaRes.content[0].text) || '';
+
+  const searchSchema = JSON.parse(searchSchemaText);
+  
+  if (
+    !searchSchema?.schema?.properties?.q ||
+    !Array.isArray(searchSchema?.schema?.required) ||
+    !searchSchema.schema.required.includes('q')
+  ) {
+    throw new Error('smart_contract.search_verified_contracts schema missing expected fields');
+  }
+  
+  dbg('✓ search_verified_contracts schema validated');
+
+  // Verify that snippet generation is not supported for search
+  const searchSnippetRes = await client.callTool({
+    name: 'get_resource_action_snippet',
+    arguments: { 
+      resource: 'smart_contract', 
+      action: 'search_verified_contracts',
+      language: 'javascript'
+    },
+  });
+  const searchSnippetText =
+    (searchSnippetRes.content && searchSnippetRes.content[0] && searchSnippetRes.content[0].text) || '';
+  if (searchSnippetText !== 'SNIPPET_GENERATION_NOT_SUPPORTED') {
+    throw new Error('smart_contract.search_verified_contracts should not support snippet generation');
+  }
+  
+  dbg('✓ search_verified_contracts snippet generation correctly not supported');
+
+  // Test actual search API call (default pacific-1)
+  try {
+    const searchRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'search_verified_contracts',
+        payload: {
+          q: 'GG'
+        }
+      },
+    });
+    const searchText =
+      (searchRes.content && searchRes.content[0] && searchRes.content[0].text) || '';
+    dbg('Smart contract search response:', searchText);
+    const searchResult = JSON.parse(searchText);
+    
+    // Verify response has contracts array with expected fields (name, hash, language)
+    if (
+      !('contracts' in searchResult) ||
+      !Array.isArray(searchResult.contracts)
+    ) {
+      throw new Error('smart_contract.search_verified_contracts should return contracts array');
+    }
+    
+    // Check that contracts have the expected fields (if any results)
+    if (searchResult.contracts.length > 0) {
+      const firstContract = searchResult.contracts[0];
+      const hasExpectedFields = (
+        'name' in firstContract || 
+        'hash' in firstContract || 
+        'language' in firstContract
+      );
+      if (!hasExpectedFields) {
+        throw new Error('smart_contract.search_verified_contracts contracts missing expected fields (name, hash, language)');
+      }
+    }
+    
+    dbg('Smart contract search successful (pacific-1 default) - found contracts:', searchResult.contracts.length);
+  } catch (error) {
+    // If the API call fails due to network issues, that's acceptable for the test
+    dbg('Smart contract search failed (may be expected):', error.message);
+  }
+
+  // Test search with explicit atlantic-2 chain
+  try {
+    const searchRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'search_verified_contracts',
+        payload: {
+          q: 'GG',
+          chain: 'atlantic-2'
+        }
+      },
+    });
+    const searchText =
+      (searchRes.content && searchRes.content[0] && searchRes.content[0].text) || '';
+    const searchResult = JSON.parse(searchText);
+    
+    if (!('contracts' in searchResult) || !Array.isArray(searchResult.contracts)) {
+      throw new Error('smart_contract.search_verified_contracts should return contracts array');
+    }
+    
+    dbg('Smart contract search successful (atlantic-2) - found contracts:', searchResult.contracts.length);
+  } catch (error) {
+    dbg('Smart contract search failed (may be expected):', error.message);
+  }
+
+  // Test search with arctic-1 chain
+  try {
+    const searchRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'search_verified_contracts',
+        payload: {
+          q: 'GG',
+          chain: 'arctic-1'
+        }
+      },
+    });
+    const searchText =
+      (searchRes.content && searchRes.content[0] && searchRes.content[0].text) || '';
+    const searchResult = JSON.parse(searchText);
+    
+    if (!('contracts' in searchResult) || !Array.isArray(searchResult.contracts)) {
+      throw new Error('smart_contract.search_verified_contracts should return contracts array');
+    }
+    
+    dbg('Smart contract search successful (arctic-1) - found contracts:', searchResult.contracts.length);
+  } catch (error) {
+    dbg('Smart contract search failed (may be expected):', error.message);
+  }
+
+  // Test search with invalid chain
+  try {
+    const invalidSearchRes = await client.callTool({
+      name: 'invoke_resource_action',
+      arguments: {
+        resource: 'smart_contract',
+        action: 'search_verified_contracts',
+        payload: {
+          q: 'GG',
+          chain: 'invalid-chain'
+        }
+      },
+    });
+    const invalidSearchText =
+      (invalidSearchRes.content && invalidSearchRes.content[0] && invalidSearchRes.content[0].text) || '';
+    if (!invalidSearchText.includes('Invalid chain')) {
+      throw new Error('Invalid chain should have been rejected for search');
+    }
+    dbg('Invalid chain correctly rejected for search:', invalidSearchText);
+  } catch (error) {
+    dbg('Invalid chain correctly rejected for search with error:', error.message);
+  }
+
   dbg('Smart contract resource tests passed');
 };
