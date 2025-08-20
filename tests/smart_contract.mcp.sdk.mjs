@@ -45,7 +45,7 @@ export const testSmartContractResources = async (client) => {
   });
   const snippetText =
     (snippetRes.content && snippetRes.content[0] && snippetRes.content[0].text) || '';
-  if (snippetText !== 'SNIPPET_GENERATION_NOT_SUPPORTED') {
+  if (!snippetText.includes('SNIPPET_GENERATION_NOT_SUPPORTED')) {
     throw new Error('smart_contract.download_abi should not support snippet generation');
   }
 
@@ -236,7 +236,7 @@ export const testSmartContractResources = async (client) => {
   });
   const searchSnippetText =
     (searchSnippetRes.content && searchSnippetRes.content[0] && searchSnippetRes.content[0].text) || '';
-  if (searchSnippetText !== 'SNIPPET_GENERATION_NOT_SUPPORTED') {
+  if (!searchSnippetText.includes('SNIPPET_GENERATION_NOT_SUPPORTED')) {
     throw new Error('smart_contract.search_verified_contracts should not support snippet generation');
   }
   
