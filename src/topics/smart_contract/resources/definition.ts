@@ -2,7 +2,7 @@ import { McpToolDefinition } from '../../../types.js';
 
 // Short, LLM-friendly description of this resource
 export const RESOURCE_DESCRIPTION =
-  'Get smart contract details, or download smart contract ABI from Seitrace (Pacific-1, Atlantic-2, Arctic-1).';
+  'Query smart contract state, or download smart contract ABI from Seitrace (pacific-1, atlantic-2, arctic-1).';
 
 /**
  * Smart Contract endpoint definition
