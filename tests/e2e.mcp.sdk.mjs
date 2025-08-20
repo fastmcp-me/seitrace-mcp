@@ -13,6 +13,7 @@ import { testInsightsResouces } from './insights.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
 import { testSchemaValidation, testSearchVerifiedContractsBugCase } from './schema_validation.mcp.sdk.mjs';
+import { testEthersSnippetGenerator } from './ethers_snippet_generator.test.mjs';
 
 async function main() {
   const fileName = fileURLToPath(import.meta.url);
@@ -28,6 +29,9 @@ async function main() {
   try {
     // Test schema validation utilities (unit tests)
     await testSchemaValidation();
+
+    // Test ethers snippet generator (unit tests)
+    await testEthersSnippetGenerator();
 
     // Test tool list
     await testToolList(client);
