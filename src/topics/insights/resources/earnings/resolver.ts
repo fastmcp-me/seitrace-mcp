@@ -13,7 +13,7 @@ type EarningItem = {
   total_apr?: number;
   total_apy?: number;
   tvl?: number;
-  provider?: { provider_name?: string };
+  provider?: { provider_name?: string; provider_type: string; provider_key: string };
   [k: string]: any;
 };
 
@@ -29,6 +29,8 @@ function simplifyItem(it: EarningItem) {
     url: address ? `https://seitrace.com/earning/${address}` : undefined,
     image: it?.pool_image,
     provider: it?.provider?.provider_name,
+    provider_type: it?.provider?.provider_type,
+    provider_key: it?.provider?.provider_key,
     tvl: it?.tvl,
     apr: it?.total_apr,
     apy: it?.total_apy,
@@ -43,7 +45,9 @@ export function searchEarningsResolver(result: CallToolResult, payload?: any): C
 
     const items: EarningItem[] = Array.isArray(parsed?.items) ? parsed.items : [];
     // Optional local filter by search_terms if executor didn't include it
-    const q = String((payload && payload.search_terms) || '').trim().toLowerCase();
+    const q = String((payload && payload.search_terms) || '')
+      .trim()
+      .toLowerCase();
     const limitRaw = Number((payload && payload.limit) || 20);
     const limit = isFinite(limitRaw) ? Math.max(1, Math.min(50, limitRaw)) : 20;
 
@@ -82,10 +86,14 @@ export function getEarningDetailsResolver(result: CallToolResult, payload?: any)
 
     const items: EarningItem[] = Array.isArray(parsed?.items) ? parsed.items : [];
     const qAddr = normalizeAddress((payload && payload.pool_address) || '');
-    if (!qAddr) return McpResponse(JSON.stringify({ error: 'pool_address not provided to resolver' }));
+    if (!qAddr)
+      return McpResponse(JSON.stringify({ error: 'pool_address not provided to resolver' }));
 
     const match = items.find((i) => normalizeAddress(i?.pool_address) === qAddr);
-    if (!match) return McpResponse(JSON.stringify({ error: 'EARNING_NOT_FOUND', pool_address: payload?.pool_address }));
+    if (!match)
+      return McpResponse(
+        JSON.stringify({ error: 'EARNING_NOT_FOUND', pool_address: payload?.pool_address })
+      );
 
     return McpResponse(JSON.stringify({ item: simplifyItem(match) }));
   } catch (error) {

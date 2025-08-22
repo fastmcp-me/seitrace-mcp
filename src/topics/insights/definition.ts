@@ -16,7 +16,7 @@ export const INSIGHTS_RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
   [`${TOPIC_KEY}_cw721`]: 'Query CW721 tokens: info, instances, balances, holders, transfers.',
   [`${TOPIC_KEY}_smart_contract`]: 'Query smart contract details.',
   [`${TOPIC_KEY}_assets`]: 'List/Search official assets and fetch asset details by identifier.',
-  [`${TOPIC_KEY}_earnings`]: 'Search/list earnings pools and get pool details by address (pacific-1).',
+  [`${TOPIC_KEY}_earnings`]: 'Search/list earnings/staking pools and get pool details by address (pacific-1).',
 };
 
 // Resolver wiring for insights topic

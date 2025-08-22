@@ -1,7 +1,7 @@
 import { McpToolDefinition } from '../../../../types.js';
 
 export const RESOURCE_DESCRIPTION =
-  'Search and fetch earnings pools (APR/APY) on pacific-1. Supports top pools and optional search by name/symbol/address; and details by pool address.';
+  'Search and fetch earnings/staking pools (APR/APY) on pacific-1. Supports top pools and optional search by name/symbol/address; and details by pool address.';
 
 // Endpoint base (absolute) – we rely on api executor supporting absolute URLs
 const EARNINGS_ENDPOINT = 'https://workspace-api.seitrace.com/api/v1/apy/top';
@@ -12,7 +12,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
     {
       name: 'EarningsController-searchEarnings',
       description:
-        'List/search earnings pools for pacific-1. When search_terms omitted, returns top pools (max 50).',
+        'List/search earnings/staking pools for pacific-1. When search_terms omitted, returns top pools (max 50).',
       inputSchema: {
         type: 'object',
         properties: {
