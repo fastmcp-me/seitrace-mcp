@@ -1,6 +1,6 @@
 {
   "name": "@seitrace/mcp",
-  "version": "0.2.36",
+  "version": "0.2.37",
   "description": "Seitrace Insights MCP",
   "type": "module",
   "main": "build/index.js",
@@ -30,6 +30,8 @@
   },
   "scripts": {
     "start": "node build/index.js",
+    "start:sse": "node build/index.sse.js",
+    "start:httpstream": "node build/index.httpstream.js",
     "build": "tsc && chmod 755 build/index.js",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && jest --runInBand",
