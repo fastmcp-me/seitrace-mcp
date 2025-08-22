@@ -1,6 +1,6 @@
 {
   "name": "@seitrace/mcp",
-  "version": "0.2.37",
+  "version": "0.2.38",
   "description": "Seitrace Insights MCP",
   "type": "module",
   "main": "build/src/index.js",
@@ -26,7 +26,7 @@
     "url": "https://github.com/Seitrace/seitrace-mcp.git"
   },
   "bin": {
-    "seitrace-mcp": "build/index.js"
+    "seitrace-mcp": "build/src/index.js"
   },
   "scripts": {
     "start": "node build/src/index.js",
