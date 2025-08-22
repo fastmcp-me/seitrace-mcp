@@ -31,9 +31,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           },
           query: {
             type: 'string',
-            description:
-              'Case-insensitive search string for name, symbol, or identifier (min 2 characters recommended).',
-            minLength: 1,
+            description: 'Case-insensitive search string for name, symbol, or identifier.',
           },
           limit: {
             type: 'number',
@@ -42,7 +40,6 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
             maximum: 50,
           },
         },
-        required: ['query'],
         additionalProperties: false,
       },
       method: 'get',
@@ -98,7 +95,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       requestBodyContentType: undefined,
       securityRequirements: [],
       executor: 'gateway',
-  resolver: 'getAssetsDetails',
+      resolver: 'getAssetsDetails',
       snippetGenerator: 'general',
     },
   ],
