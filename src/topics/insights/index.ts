@@ -19,6 +19,7 @@ import {
 import { McpGroupedToolDefinition } from '../../types.js';
 import { INSIGHTS_API_BASE_URL, securitySchemes } from '../../constants.js';
 import { TOPIC_KEY } from './definition.js';
+import { RESOLVER_MAP } from './definition.js';
 
 /**
  * Arguments for invoking an insights tool action
@@ -209,13 +210,26 @@ s   */
       }
 
       const executorFn = getExecutor((foundAction as any).executor);
-      return await executorFn({
+      const result = await executorFn({
         toolName: `${resource}.${action}`,
         definition: foundAction,
         toolArgs: payload,
         securitySchemes,
         baseUrl: INSIGHTS_API_BASE_URL,
       });
+
+      // Post-process with resolver if defined
+      try {
+        const resolverId = (foundAction as any).resolver as string | undefined;
+        if (!resolverId || !(RESOLVER_MAP as any)[resolverId]) return result;
+
+        const resolver = (RESOLVER_MAP as any)[resolverId] as any;
+        // Provide payload to resolver when supported (assets search/detail need it)
+        return resolver.length >= 2 ? resolver(result, payload) : resolver(result);
+      } catch (_e) {
+        console.error('Error occurred while resolving:', _e);
+        return result;
+      }
     });
   }
 }

@@ -65,13 +65,27 @@ export const executeGatewayTool = async (
     }
 
     // Build request
-    const urlPath = definition.pathTemplate || '/api/v1/addresses/associations';
+    const urlPath = definition.pathTemplate || '/';
     const base = baseUrl.replace(/\/$/, '');
     const url = `${base}${urlPath}`;
-    const hashes = Array.isArray(validatedArgs['hashes']) ? validatedArgs['hashes'] : [];
-
+    // Build query params from executionParameters generically (ignore chain_id/endpoint)
     const params = new URLSearchParams();
-    for (const h of hashes) params.append('hashes', String(h));
+    if (Array.isArray(definition.executionParameters)) {
+      for (const p of definition.executionParameters) {
+        if (!p || p.in !== 'query') continue;
+        const name = p.name;
+        if (name === 'chain_id' || name === 'endpoint') continue; // handled in base URL
+        const value = (validatedArgs as any)[name];
+        if (value === undefined || value === null) continue;
+        if (Array.isArray(value)) {
+          for (const v of value) params.append(name, String(v));
+        } else if (typeof value === 'object') {
+          params.set(name, JSON.stringify(value));
+        } else {
+          params.set(name, String(value));
+        }
+      }
+    }
 
     const config: AxiosRequestConfig = {
       method: 'GET',

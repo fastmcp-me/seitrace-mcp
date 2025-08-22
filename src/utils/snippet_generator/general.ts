@@ -120,7 +120,7 @@ export function generateGeneralFromDefinition(
   definition: { pathTemplate?: string; executor?: string },
   _actionName: string,
   language: (typeof SUPPORTED_GENERAL_SNIPPET_LANGUAGES)[number],
-  payload?: { chain_id?: string; endpoint?: string; hashes?: string[]; [k: string]: any }
+  payload?: { chain_id?: string; endpoint?: string; hashes?: string[]; query?: string; identifier?: string; [k: string]: any }
 ): string {
   const pathTemplate = String(definition.pathTemplate || '/');
   // Gateway target base URL resolution
@@ -129,13 +129,20 @@ export function generateGeneralFromDefinition(
     const endpoint = payload?.endpoint || '';
     const baseUrl =
       endpoint || (chainId && GATEWAY_BY_CHAIN[chainId]) || GATEWAY_BY_CHAIN['pacific-1'];
-    const DEFAULT_HASHES = [
-      '0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18',
-      '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
-    ];
-    const chosenHashes =
-      Array.isArray(payload?.hashes) && payload!.hashes.length ? payload!.hashes : DEFAULT_HASHES;
-    const queryParams: Record<string, any> = { hashes: chosenHashes };
+    const queryParams: Record<string, any> = {};
+    // Provide typical examples based on known actions
+    const isAssociations = /addresses\/associations$/.test(pathTemplate);
+    if (Array.isArray(payload?.hashes) && payload!.hashes.length) {
+      queryParams['hashes'] = payload!.hashes;
+    } else if (isAssociations) {
+      // Default example hashes for associations (expected by tests)
+      queryParams['hashes'] = [
+        '0x93F9989b63DCe31558EB6Eaf1005b5BA18E19b18',
+        '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
+      ];
+    }
+    if (typeof payload?.query === 'string') queryParams['query'] = payload!.query;
+    if (typeof payload?.identifier === 'string') queryParams['identifier'] = payload!.identifier;
 
     const snippet = generateGeneralSnippet(
       {

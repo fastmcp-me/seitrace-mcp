@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global process, console */
 // Load environment variables from .env file
 import dotenv from 'dotenv';
 dotenv.config();
@@ -10,6 +11,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 import { testToolList } from './tool_list.mcp.sdk.mjs';
 import { testInsightsResouces } from './insights.mcp.sdk.mjs';
+import { testInsightsAssets } from './insights_assets.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
 import { testSchemaValidation, testSearchVerifiedContractsBugCase } from './schema_validation.mcp.sdk.mjs';
@@ -38,6 +40,9 @@ async function main() {
 
     // Test insights resources
     await testInsightsResouces(client, childEnv);
+
+  // Test insights assets resources (discovery + schema checks)
+  await testInsightsAssets(client);
 
     // Test general resources
     await testGeneralResources(client);

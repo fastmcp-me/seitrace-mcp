@@ -33,6 +33,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 - `insights_erc1155` — Query ERC-1155 tokens: info, holders, instances, balances, transfers.
 - `insights_cw721` — Query CW721 tokens: info, instances, balances, holders, transfers.
 - `insights_smart_contract` — Query smart contract details.
+- `insights_assets` — Search official assets by name/symbol/identifier and get asset details by identifier. Uses Sei gateway endpoints; search is performed offline over the fetched assets list.
 
 **Smart Contract**
 
