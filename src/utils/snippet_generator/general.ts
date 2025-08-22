@@ -123,6 +123,7 @@ export function generateGeneralFromDefinition(
   payload?: { chain_id?: string; endpoint?: string; hashes?: string[]; query?: string; identifier?: string; [k: string]: any }
 ): string {
   const pathTemplate = String(definition.pathTemplate || '/');
+  const isAbsolute = /^(https?:)?\/\//i.test(pathTemplate);
   // Gateway target base URL resolution
   if (definition.executor === 'gateway') {
     const chainId = payload?.chain_id || '';
@@ -161,7 +162,27 @@ export function generateGeneralFromDefinition(
     return prefix + snippet;
   }
 
-  // Fallback generic GET template
+  // Fallback generic GET template (supports absolute URLs too)
+  if (isAbsolute) {
+    // Pass absolute URL as base and empty path; attach common query keys when present
+    const queryParams: Record<string, any> = {};
+    const possibleKeys = ['query', 'identifier', 'search_terms'];
+    for (const k of possibleKeys) {
+      const v = (payload as any)?.[k];
+      if (v !== undefined && v !== null && v !== '') queryParams[k] = v;
+    }
+    return generateGeneralSnippet(
+      {
+        baseUrl: pathTemplate,
+        path: '',
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        queryParams,
+      },
+      language
+    );
+  }
+
   return generateGeneralSnippet(
     {
       baseUrl: '<BASE_URL>',

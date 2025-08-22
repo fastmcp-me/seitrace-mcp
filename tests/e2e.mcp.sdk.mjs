@@ -12,6 +12,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { testToolList } from './tool_list.mcp.sdk.mjs';
 import { testInsightsResouces } from './insights.mcp.sdk.mjs';
 import { testInsightsAssets } from './insights_assets.mcp.sdk.mjs';
+import { testInsightsEarnings } from './insights_earnings.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
 import { testSchemaValidation, testSearchVerifiedContractsBugCase } from './schema_validation.mcp.sdk.mjs';
@@ -43,6 +44,9 @@ async function main() {
 
   // Test insights assets resources (discovery + schema checks)
   await testInsightsAssets(client);
+
+  // Test insights earnings resources
+  await testInsightsEarnings(client);
 
     // Test general resources
     await testGeneralResources(client);

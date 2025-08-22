@@ -1,5 +1,6 @@
 import { McpToolDefinition } from '../../../types.js';
 import { endpointDefinitionMap as assetsEndpoints } from './assets/definition.js';
+import { endpointDefinitionMap as earningsEndpoints } from './earnings/definition.js';
 
 /**
  * Flat map of endpoint tool definitions by name (as originally generated)
@@ -1526,5 +1527,10 @@ The endpoint to get smart contract details.
 
 // Append non-OAS insights resources (assets)
 for (const [k, v] of Array.from(assetsEndpoints.entries())) {
+  endpointDefinitionMap.set(k, v);
+}
+
+// Append earnings resources
+for (const [k, v] of Array.from(earningsEndpoints.entries())) {
   endpointDefinitionMap.set(k, v);
 }

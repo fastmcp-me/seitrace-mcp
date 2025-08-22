@@ -34,6 +34,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 - `insights_cw721` — Query CW721 tokens: info, instances, balances, holders, transfers.
 - `insights_smart_contract` — Query smart contract details.
 - `insights_assets` — Search official assets by name/symbol/identifier and get asset details by identifier. Uses Sei gateway endpoints; search is performed offline over the fetched assets list.
+- `insights_earnings` — Search/list earnings pools (APR/APY) for pacific-1 and fetch a pool by address. Returns simplified fields: name, address, url, image, provider, tvl, apr, apy.
 
 **Smart Contract**
 

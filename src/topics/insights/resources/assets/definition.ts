@@ -40,6 +40,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
             maximum: 50,
           },
         },
+  required: ['query'],
         additionalProperties: false,
       },
       method: 'get',

@@ -45,7 +45,7 @@ export const executeApiTool = async (
       }
     }
 
-    let urlPath = definition.pathTemplate!;
+  let urlPath = definition.pathTemplate!;
     const queryParams: Record<string, any> = {};
     const headers: Record<string, string> = { Accept: 'application/json' };
     let requestBodyData: any = undefined;
@@ -70,7 +70,10 @@ export const executeApiTool = async (
       throw new Error(`Failed to resolve path parameters: ${urlPath}`);
     }
 
-    const requestUrl = `${baseUrl}${urlPath}`;
+    // Allow absolute URLs in pathTemplate; if provided, ignore baseUrl
+    const requestUrl = /^(https?:)?\/\//i.test(urlPath)
+      ? urlPath
+      : `${baseUrl}${urlPath}`;
 
     // For POST faucet, send validated args as the JSON body.
     if (definition.requestBodyContentType && typeof validatedArgs['requestBody'] !== 'undefined') {
