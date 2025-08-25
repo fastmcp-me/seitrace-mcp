@@ -28,75 +28,73 @@ async function cleanup() {
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 
+const port = Number(process.env.PORT || 3333);
+const host = String(process.env.HOST || '127.0.0.1');
+
+const sessionMap = new Map<string, SSEServerTransport>();
+
+const mcpServer = new Server(
+  { name: SERVER_NAME, version: SERVER_VERSION },
+  { capabilities: { tools: {} } }
+);
+
+mcpServer.setRequestHandler(ListToolsRequestSchema, toolListHandler);
+mcpServer.setRequestHandler(
+  CallToolRequestSchema,
+  async (request: CallToolRequest): Promise<CallToolResult> => {
+    const { name: toolName, arguments: toolArgs } = request.params;
+    if (!Object.keys(handlerMap).includes(toolName)) {
+      console.error(`Error: Unknown tool requested: ${toolName}`);
+      return McpResponse(JSON.stringify({ error: `Error: Unknown tool requested: ${toolName}` }));
+    }
+    const handler = (handlerMap as any)[toolName];
+    return await handler(toolArgs);
+  }
+);
+const httpServer = http.createServer(async (req, res) => {
+  try {
+    const rawUrl = req.url || '/';
+    const [pathnameRaw, queryRaw] = rawUrl.split('?');
+    const pathname = pathnameRaw || '/';
+    const searchParams = new URLSearchParams(queryRaw || '');
+
+    // Establish SSE connection
+    if (req.method === 'GET' && pathname === '/sse') {
+      // POST endpoint for messages (relative); sessionId is appended in event from transport
+      const transport = new SSEServerTransport('/message', res);
+      await mcpServer.connect(transport);
+      sessionMap.set(transport.sessionId, transport);
+      transport.onclose = () => {
+        sessionMap.delete(transport.sessionId);
+      };
+      return;
+    }
+
+    // Handle POST messages for a specific session
+    if (req.method === 'POST' && pathname === '/message') {
+      const sessionId = searchParams.get('sessionId') || '';
+      const transport = sessionMap.get(sessionId);
+      if (!transport) {
+        res.writeHead(404).end('Unknown session');
+        return;
+      }
+      await transport.handlePostMessage(req as any, res as any);
+      return;
+    }
+
+    res.writeHead(404).end('Not found');
+  } catch (err: any) {
+    res.writeHead(500).end('Internal error');
+    console.error('SSE server error:', err?.message || err);
+  }
+});
+
 async function main() {
   try {
-    const port = Number(process.env.PORT || 3333);
-    const host = String(process.env.HOST || '127.0.0.1');
-
-    const sessionMap = new Map<string, SSEServerTransport>();
-
-    const mcpServer = new Server(
-      { name: SERVER_NAME, version: SERVER_VERSION },
-      { capabilities: { tools: {} } }
-    );
-
-    mcpServer.setRequestHandler(ListToolsRequestSchema, toolListHandler);
-    mcpServer.setRequestHandler(
-      CallToolRequestSchema,
-      async (request: CallToolRequest): Promise<CallToolResult> => {
-        const { name: toolName, arguments: toolArgs } = request.params;
-        if (!Object.keys(handlerMap).includes(toolName)) {
-          console.error(`Error: Unknown tool requested: ${toolName}`);
-          return McpResponse(
-            JSON.stringify({ error: `Error: Unknown tool requested: ${toolName}` })
-          );
-        }
-        const handler = (handlerMap as any)[toolName];
-        return await handler(toolArgs);
-      }
-    );
-
-    const httpServer = http.createServer(async (req, res) => {
-      try {
-  const rawUrl = req.url || '/';
-  const [pathnameRaw, queryRaw] = rawUrl.split('?');
-  const pathname = pathnameRaw || '/';
-  const searchParams = new URLSearchParams(queryRaw || '');
-
-        // Establish SSE connection
-        if (req.method === 'GET' && pathname === '/sse') {
-          // POST endpoint for messages (relative); sessionId is appended in event from transport
-          const transport = new SSEServerTransport('/message', res);
-          await mcpServer.connect(transport);
-          sessionMap.set(transport.sessionId, transport);
-          transport.onclose = () => {
-            sessionMap.delete(transport.sessionId);
-          };
-          // connect() will call transport.start() and keep the response open
-          return;
-        }
-
-        // Handle POST messages for a specific session
-        if (req.method === 'POST' && pathname === '/message') {
-          const sessionId = searchParams.get('sessionId') || '';
-          const transport = sessionMap.get(sessionId);
-          if (!transport) {
-            res.writeHead(404).end('Unknown session');
-            return;
-          }
-          await transport.handlePostMessage(req as any, res as any);
-          return;
-        }
-
-        res.writeHead(404).end('Not found');
-      } catch (err: any) {
-        res.writeHead(500).end('Internal error');
-        console.error('SSE server error:', err?.message || err);
-      }
-    });
-
     httpServer.listen(port, host, () => {
-      console.error(`${SERVER_NAME} MCP Server (v${SERVER_VERSION}) running on SSE http://${host}:${port}`);
+      console.error(
+        `${SERVER_NAME} MCP Server (v${SERVER_VERSION}) running on SSE http://${host}:${port}`
+      );
       console.error(`- Connect via GET /sse, then POST messages to /message?sessionId=...`);
     });
   } catch (error) {
