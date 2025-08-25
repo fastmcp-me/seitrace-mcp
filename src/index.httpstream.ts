@@ -50,25 +50,25 @@ mcpServer.setRequestHandler(
   }
 );
 
+// Use a single, stateless transport for all requests so init persists per process
 const transport = new StreamableHTTPServerTransport({
-  // Provide a simple session ID generator for stream sessions
-  sessionIdGenerator: () =>
-    `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`,
-  // enableJsonResponse: true, // optional: force JSON responses instead of SSE
+  // Undefined disables session management; allows repeated initialize from new clients
+  sessionIdGenerator: undefined,
+  // enableJsonResponse: true, // optional
 });
 
 const httpServer = http.createServer(async (req, res) => {
+  const baseHost = req.headers.host || `${host}:${port}`;
+  const parsed = new URL(req.url || '', `http://${baseHost}`);
+  const pathname = parsed.pathname || '/';
+
+  // Simple health
+  if (req.method === 'GET' && pathname === '/') {
+    res.writeHead(200, { 'content-type': 'text/plain' }).end('ok');
+    return;
+  }
+
   try {
-    const baseHost = req.headers.host || `${host}:${port}`;
-    const parsed = new URL(req.url || '', `http://${baseHost}`);
-    const pathname = parsed.pathname || '/';
-
-    // Simple health
-    if (req.method === 'GET' && pathname === '/') {
-      res.writeHead(200, { 'content-type': 'text/plain' }).end('ok');
-      return;
-    }
-
     // Delegate to the SDK transport for spec-compliant streamable HTTP
     await transport.handleRequest(req as any, res as any);
   } catch (err: any) {
