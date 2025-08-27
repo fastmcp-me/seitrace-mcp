@@ -51,7 +51,7 @@ Make sure you are using the correct endpoints
 StreamableHTTP
 
 ```shell
-https://mcp-http.seitrace.com/<api-key>
+https://mcp.seitrace.com/<api-key>
 ```
 
 SSE
