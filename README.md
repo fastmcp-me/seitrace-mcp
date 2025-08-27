@@ -56,7 +56,7 @@ https://mcp.seitrace.com/<api-key>
 
 SSE
 ```shell
-https://mcp-sse.seitrace.com/sse/<api-key>
+https://mcp.seitrace.com/sse/<api-key>
 ```
 
 ## Use with VSCode variants, Claude Desktop / Cursor 💻
