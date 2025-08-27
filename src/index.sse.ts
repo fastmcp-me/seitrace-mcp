@@ -7,7 +7,6 @@ dotenv.config();
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import http from 'http';
-import { URL } from 'url';
 
 import { SERVER_NAME, SERVER_VERSION } from './constants.js';
 import {
@@ -60,6 +59,12 @@ const httpServer = http.createServer(async (req, res) => {
     const searchParams = new URLSearchParams(queryRaw || '');
     const apiKey =
       pathname.replace('/message', '').replace('/sse', '').replace(/^\//, '') || undefined;
+
+    // Check for API key
+    if (!apiKey) {
+      res.writeHead(401).end('Unauthorized');
+      return;
+    }
 
     // Establish SSE connection
     if (req.method === 'GET' && pathname.startsWith('/sse')) {

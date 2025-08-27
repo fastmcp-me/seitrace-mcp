@@ -63,6 +63,12 @@ const httpServer = http.createServer(async (req, res) => {
   const pathname = parsed.pathname || '/';
   const apiKey = pathname !== '/' ? pathname.replace(/^\//, '') : undefined;
 
+  // Check for API key
+  if (!apiKey) {
+    res.writeHead(401).end('Unauthorized');
+    return;
+  }
+
   // Simple health
   if (req.method === 'GET' && pathname === '/') {
     res.writeHead(200, { 'content-type': 'text/plain' }).end('ok');
