@@ -39,14 +39,14 @@ const mcpServer = new Server(
 mcpServer.setRequestHandler(ListToolsRequestSchema, toolListHandler);
 mcpServer.setRequestHandler(
   CallToolRequestSchema,
-  async (request: CallToolRequest): Promise<CallToolResult> => {
+  async (request: CallToolRequest, { authInfo }): Promise<CallToolResult> => {
     const { name: toolName, arguments: toolArgs } = request.params;
     if (!Object.keys(handlerMap).includes(toolName)) {
       console.error(`Error: Unknown tool requested: ${toolName}`);
       return McpResponse(JSON.stringify({ error: `Error: Unknown tool requested: ${toolName}` }));
     }
     const handler = (handlerMap as any)[toolName];
-    return await handler(toolArgs);
+    return await handler(toolArgs, authInfo?.token);
   }
 );
 
@@ -61,6 +61,7 @@ const httpServer = http.createServer(async (req, res) => {
   const baseHost = req.headers.host || `${host}:${port}`;
   const parsed = new URL(req.url || '', `http://${baseHost}`);
   const pathname = parsed.pathname || '/';
+  const apiKey = pathname !== '/' ? pathname.replace(/^\//, '') : undefined;
 
   // Simple health
   if (req.method === 'GET' && pathname === '/') {
@@ -70,6 +71,10 @@ const httpServer = http.createServer(async (req, res) => {
 
   try {
     // Delegate to the SDK transport for spec-compliant streamable HTTP
+    // override request
+    (req as any).auth = {
+      token: apiKey,
+    };
     await transport.handleRequest(req as any, res as any);
   } catch (err: any) {
     res.writeHead(500).end('Internal error');

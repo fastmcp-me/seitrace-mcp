@@ -32,6 +32,7 @@ const port = Number(process.env.PORT || 3333);
 const host = String(process.env.HOST || '127.0.0.1');
 
 const sessionMap = new Map<string, SSEServerTransport>();
+const sessionApiKeyMap = new Map<string, string>();
 
 const mcpServer = new Server(
   { name: SERVER_NAME, version: SERVER_VERSION },
@@ -41,14 +42,14 @@ const mcpServer = new Server(
 mcpServer.setRequestHandler(ListToolsRequestSchema, toolListHandler);
 mcpServer.setRequestHandler(
   CallToolRequestSchema,
-  async (request: CallToolRequest): Promise<CallToolResult> => {
+  async (request: CallToolRequest, { authInfo }): Promise<CallToolResult> => {
     const { name: toolName, arguments: toolArgs } = request.params;
     if (!Object.keys(handlerMap).includes(toolName)) {
       console.error(`Error: Unknown tool requested: ${toolName}`);
       return McpResponse(JSON.stringify({ error: `Error: Unknown tool requested: ${toolName}` }));
     }
     const handler = (handlerMap as any)[toolName];
-    return await handler(toolArgs);
+    return await handler(toolArgs, authInfo?.token);
   }
 );
 const httpServer = http.createServer(async (req, res) => {
@@ -57,11 +58,16 @@ const httpServer = http.createServer(async (req, res) => {
     const [pathnameRaw, queryRaw] = rawUrl.split('?');
     const pathname = pathnameRaw || '/';
     const searchParams = new URLSearchParams(queryRaw || '');
+    const apiKey =
+      pathname.replace('/message', '').replace('/sse', '').replace(/^\//, '') || undefined;
 
     // Establish SSE connection
-    if (req.method === 'GET' && pathname === '/sse') {
+    if (req.method === 'GET' && pathname.startsWith('/sse')) {
       // POST endpoint for messages (relative); sessionId is appended in event from transport
-      const transport = new SSEServerTransport('/message', res);
+      const transport = new SSEServerTransport(`/message${apiKey ? `/${apiKey}` : ''}`, res);
+      if (apiKey) {
+        sessionApiKeyMap.set(transport.sessionId, apiKey);
+      }
       await mcpServer.connect(transport);
       sessionMap.set(transport.sessionId, transport);
       transport.onclose = () => {
@@ -71,13 +77,18 @@ const httpServer = http.createServer(async (req, res) => {
     }
 
     // Handle POST messages for a specific session
-    if (req.method === 'POST' && pathname === '/message') {
+    if (req.method === 'POST' && pathname.startsWith('/message')) {
       const sessionId = searchParams.get('sessionId') || '';
       const transport = sessionMap.get(sessionId);
+      const apiKey = sessionApiKeyMap.get(sessionId);
       if (!transport) {
         res.writeHead(404).end('Unknown session');
         return;
       }
+      // override request
+      (req as any).auth = {
+        token: apiKey,
+      };
       await transport.handlePostMessage(req as any, res as any);
       return;
     }
