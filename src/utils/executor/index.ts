@@ -19,6 +19,7 @@ export interface ApiExecutorParams {
   toolArgs: JsonObject;
   securitySchemes: any;
   baseUrl: string;
+  overrideApiKey?: string;
 }
 
 export type Executor = (params: any) => Promise<CallToolResult>;
@@ -33,7 +34,8 @@ const EXECUTOR_MAP: Record<ExecutorType, Executor> = {
       params.definition,
       params.toolArgs,
       params.securitySchemes,
-      params.baseUrl
+      params.baseUrl,
+      params.overrideApiKey
     ),
   rpc: (params: any) => executeRpcTool(params.toolName, params.definition, params.toolArgs),
   lcd: (params: any) => executeLcdTool(params.toolName, params.definition, params.toolArgs),

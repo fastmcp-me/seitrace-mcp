@@ -76,9 +76,10 @@ export interface ITopic<Args extends ToolArgs = ToolArgs> {
   /**
    * Handles the 'invokeResourceAction' tool request
    * @param toolArgs The arguments provided to the tool
+   * @param overrideApiKey Optional API key to override the default
    * @returns The result of the tool execution
    */
-  invokeResourceAction: (toolArgs: Args) => Promise<CallToolResult> | CallToolResult;
+  invokeResourceAction: (toolArgs: Args, overrideApiKey?: string) => Promise<CallToolResult> | CallToolResult;
 
   /**
    * Handles the 'listResource' tool request

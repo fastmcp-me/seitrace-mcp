@@ -9,7 +9,10 @@ import { McpResponse } from '../utils/index.js';
  * @param toolArgs The arguments provided to the tool
  * @returns The result of the tool execution
  */
-export const invokeResourceActionHandler = async (toolArgs: ToolArgs): Promise<CallToolResult> => {
+export const invokeResourceActionHandler = async (
+  toolArgs: ToolArgs,
+  overrideApiKey?: string
+): Promise<CallToolResult> => {
   const { resource, action } = toolArgs;
   const topicKey = resource.split('_')[0];
   const foundResource = TOPIC_KEY_MAP[topicKey] || TOPIC_KEY_MAP[resource];
@@ -30,5 +33,5 @@ export const invokeResourceActionHandler = async (toolArgs: ToolArgs): Promise<C
   /**
    * List actions for the resource
    */
-  return foundResource.invokeResourceAction(toolArgs);
+  return foundResource.invokeResourceAction(toolArgs, overrideApiKey);
 };

@@ -186,9 +186,10 @@ s   */
   /**
    * Handles the 'invokeResourceAction' tool request
    * @param toolArgs The arguments provided to the tool
+   * @param overrideApiKey Optional API key to override the default
    * @returns The result of the tool execution
    */
-  public async invokeResourceAction(toolArgs: InsightsToolArgs): Promise<CallToolResult> {
+  public async invokeResourceAction(toolArgs: InsightsToolArgs, overrideApiKey?: string): Promise<CallToolResult> {
     const { resource, action, payload } = toolArgs;
 
     return withMcpResponse<CallToolResult>(async () => {
@@ -216,6 +217,7 @@ s   */
         toolArgs: payload,
         securitySchemes,
         baseUrl: INSIGHTS_API_BASE_URL,
+        overrideApiKey,
       });
 
       // Post-process with resolver if defined

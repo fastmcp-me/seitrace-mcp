@@ -21,7 +21,8 @@ export const executeApiTool = async (
   definition: McpToolDefinition,
   toolArgs: JsonObject,
   securitySchemes: any,
-  baseUrl: string
+  baseUrl: string,
+  overrideApiKey?: string
 ): Promise<CallToolResult> => {
   try {
     let validatedArgs: JsonObject;
@@ -39,13 +40,13 @@ export const executeApiTool = async (
         const errorMessage = error instanceof Error ? error.message : String(error);
         return McpResponse(
           JSON.stringify({
-            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`,
           })
         );
       }
     }
 
-  let urlPath = definition.pathTemplate!;
+    let urlPath = definition.pathTemplate!;
     const queryParams: Record<string, any> = {};
     const headers: Record<string, string> = { Accept: 'application/json' };
     let requestBodyData: any = undefined;
@@ -71,9 +72,7 @@ export const executeApiTool = async (
     }
 
     // Allow absolute URLs in pathTemplate; if provided, ignore baseUrl
-    const requestUrl = /^(https?:)?\/\//i.test(urlPath)
-      ? urlPath
-      : `${baseUrl}${urlPath}`;
+    const requestUrl = /^(https?:)?\/\//i.test(urlPath) ? urlPath : `${baseUrl}${urlPath}`;
 
     // For POST faucet, send validated args as the JSON body.
     if (definition.requestBodyContentType && typeof validatedArgs['requestBody'] !== 'undefined') {
@@ -85,7 +84,13 @@ export const executeApiTool = async (
       headers['content-type'] = 'application/json';
     }
 
-    await applySecurity(definition, securitySchemes as any, headers as any, queryParams as any);
+    await applySecurity(
+      definition,
+      securitySchemes as any,
+      headers as any,
+      queryParams as any,
+      overrideApiKey
+    );
 
     const config: AxiosRequestConfig = {
       method: definition.method!.toUpperCase(),
