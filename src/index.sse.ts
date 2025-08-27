@@ -77,6 +77,7 @@ const httpServer = http.createServer(async (req, res) => {
       sessionMap.set(transport.sessionId, transport);
       transport.onclose = () => {
         sessionMap.delete(transport.sessionId);
+        sessionApiKeyMap.delete(transport.sessionId);
       };
       return;
     }
