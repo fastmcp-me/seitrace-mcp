@@ -12,6 +12,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { testToolList } from './tool_list.mcp.sdk.mjs';
 import { testInsightsResouces } from './insights.mcp.sdk.mjs';
 import { testInsightsAssets } from './insights_assets.mcp.sdk.mjs';
+import { testInsightsAssetsTokens } from './insights_assets_tokens.mcp.sdk.mjs';
 import { testInsightsEarnings } from './insights_earnings.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
@@ -22,7 +23,7 @@ async function main() {
   const fileName = fileURLToPath(import.meta.url);
   const dirName = path.dirname(fileName);
   const projectRoot = path.resolve(dirName, '..');
-  const serverBin = path.join(projectRoot, 'build', 'index.js');
+  const serverBin = path.join(projectRoot, 'build', 'src', 'index.js');
 
   const client = new Client({ name: 'e2e-runner', version: '0.0.0' }, { capabilities: {} });
   const childEnv = { ...process.env };
@@ -44,6 +45,9 @@ async function main() {
 
   // Test insights assets resources (discovery + schema checks)
   await testInsightsAssets(client);
+
+  // Test insights assets token/native/ics20 searches
+  await testInsightsAssetsTokens(client);
 
   // Test insights earnings resources
   await testInsightsEarnings(client);

@@ -59,6 +59,132 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
     },
   ],
   [
+    'AssetsController-searchTokens',
+    {
+      name: 'AssetsController-searchTokens',
+      description:
+        "Search gateway tokens by type and query (unofficial + official listings). Supported types: 'CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155', 'FACTORY'.",
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chain_id: {
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
+            type: 'string',
+            description:
+              'Chain ID to target (ignored if endpoint override provided). Only used to select the gateway host.',
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional base URL override e.g. https://pacific-1-gateway.seitrace.com. If provided, chain_id is ignored.',
+          },
+          type: {
+            type: 'string',
+            description:
+              "Token type filter: one of 'CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155', 'FACTORY'",
+            enum: ['CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155', 'FACTORY'],
+          },
+          search: {
+            type: 'string',
+            description: 'Free-text search over name, symbol, and address where applicable.',
+          },
+        },
+        required: ['search'],
+        additionalProperties: false,
+      },
+      method: 'get',
+      // Example: https://pacific-1-gateway.seitrace.com/api/v1/tokens?type=ERC-20&search=test
+      pathTemplate: '/api/v1/tokens',
+      executionParameters: [
+        { name: 'chain_id', in: 'query' },
+        { name: 'endpoint', in: 'query' },
+        { name: 'type', in: 'query' },
+        { name: 'search', in: 'query' },
+      ],
+      requestBodyContentType: undefined,
+      securityRequirements: [],
+      executor: 'gateway',
+      snippetGenerator: 'general',
+    },
+  ],
+  [
+    'AssetsController-searchNativeTokens',
+    {
+      name: 'AssetsController-searchNativeTokens',
+      description:
+        'Search native tokens (bank module) by name/symbol/denom on the gateway.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chain_id: {
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
+            type: 'string',
+            description:
+              'Chain ID to target (ignored if endpoint override provided). Only used to select the gateway host.',
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional base URL override e.g. https://pacific-1-gateway.seitrace.com. If provided, chain_id is ignored.',
+          },
+          search: { type: 'string', description: 'Search string' },
+        },
+        required: ['search'],
+        additionalProperties: false,
+      },
+      method: 'get',
+      // Example: https://pacific-1-gateway.seitrace.com/api/v1/native-tokens?search=test
+      pathTemplate: '/api/v1/native-tokens',
+      executionParameters: [
+        { name: 'chain_id', in: 'query' },
+        { name: 'endpoint', in: 'query' },
+        { name: 'search', in: 'query' },
+      ],
+      requestBodyContentType: undefined,
+      securityRequirements: [],
+      executor: 'gateway',
+      snippetGenerator: 'general',
+    },
+  ],
+  [
+    'AssetsController-searchIcs20Tokens',
+    {
+      name: 'AssetsController-searchIcs20Tokens',
+      description: 'Search ICS20 tokens by name/symbol/denom on the gateway.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chain_id: {
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
+            type: 'string',
+            description:
+              'Chain ID to target (ignored if endpoint override provided). Only used to select the gateway host.',
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional base URL override e.g. https://pacific-1-gateway.seitrace.com. If provided, chain_id is ignored.',
+          },
+          search: { type: 'string', description: 'Search string' },
+        },
+        required: ['search'],
+        additionalProperties: false,
+      },
+      method: 'get',
+      // Example: https://pacific-1-gateway.seitrace.com/api/v1/ics20-tokens?search=test
+      pathTemplate: '/api/v1/ics20-tokens',
+      executionParameters: [
+        { name: 'chain_id', in: 'query' },
+        { name: 'endpoint', in: 'query' },
+        { name: 'search', in: 'query' },
+      ],
+      requestBodyContentType: undefined,
+      securityRequirements: [],
+      executor: 'gateway',
+      snippetGenerator: 'general',
+    },
+  ],
+  [
     'AssetsController-getAssetsDetails',
     {
       name: 'AssetsController-getAssetsDetails',

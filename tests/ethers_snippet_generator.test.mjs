@@ -1,7 +1,7 @@
-import { 
-  generateEthersSnippet, 
-  validateEthersPayload 
-} from '../build/utils/snippet_generator/ethers.js';
+import {
+  generateEthersSnippet,
+  validateEthersPayload
+} from '../build/src/utils/snippet_generator/ethers.js';
 import { dbg } from './utils.mjs';
 
 /**

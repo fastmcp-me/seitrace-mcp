@@ -1,4 +1,4 @@
-import { getZodSchemaFromJsonSchema, camelToSnake, controllerNameToToolName } from '../build/utils/schema.js';
+import { getZodSchemaFromJsonSchema, camelToSnake, controllerNameToToolName } from '../build/src/utils/schema.js';
 import { dbg } from './utils.mjs';
 
 /**

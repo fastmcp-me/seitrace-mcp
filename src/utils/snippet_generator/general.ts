@@ -142,8 +142,11 @@ export function generateGeneralFromDefinition(
         '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
       ];
     }
-    if (typeof payload?.query === 'string') queryParams['query'] = payload!.query;
-    if (typeof payload?.identifier === 'string') queryParams['identifier'] = payload!.identifier;
+  if (typeof payload?.query === 'string') queryParams['query'] = payload!.query;
+  if (typeof payload?.identifier === 'string') queryParams['identifier'] = payload!.identifier;
+  // Support token/native/ics20 search params
+  if (typeof payload?.search === 'string') queryParams['search'] = payload!.search;
+  if (typeof payload?.type === 'string') queryParams['type'] = payload!.type;
 
     const snippet = generateGeneralSnippet(
       {
