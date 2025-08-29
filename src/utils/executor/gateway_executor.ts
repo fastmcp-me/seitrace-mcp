@@ -66,8 +66,24 @@ export const executeGatewayTool = async (
     }
 
     // Build request
-    const urlPath = definition.pathTemplate || '/';
+    let urlPath = definition.pathTemplate || '/';
     const base = baseUrl.replace(/\/$/, '');
+    // Replace path params if any
+    if (Array.isArray(definition.executionParameters)) {
+      for (const p of definition.executionParameters) {
+        if (!p || p.in !== 'path') continue;
+        const name = p.name;
+        const value = (validatedArgs as any)[name];
+        if (value !== undefined && value !== null) {
+          urlPath = urlPath.replace(`{${name}}`, encodeURIComponent(String(value)));
+        }
+      }
+    }
+    if (urlPath.includes('{')) {
+      return McpResponse(
+        JSON.stringify({ error: `Failed to resolve path parameters: ${urlPath}` })
+      );
+    }
     const url = `${base}${urlPath}`;
     // Build query params from executionParameters generically (ignore chain_id/endpoint)
     const params = new URLSearchParams();

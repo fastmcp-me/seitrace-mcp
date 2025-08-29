@@ -129,7 +129,7 @@ export function generateGeneralFromDefinition(
     [k: string]: any;
   }
 ): string {
-  const pathTemplate = String(definition.pathTemplate || '/');
+  let pathTemplate = String(definition.pathTemplate || '/');
   const isAbsolute = /^(https?:)?\/\//i.test(pathTemplate);
   // Gateway target base URL resolution
   if (definition.executor === 'gateway') {
@@ -138,6 +138,14 @@ export function generateGeneralFromDefinition(
     const baseUrl =
       endpoint || (chainId && GATEWAY_BY_CHAIN[chainId]) || GATEWAY_BY_CHAIN['pacific-1'];
     const queryParams: Record<string, any> = {};
+    // Replace common path params in the template when present
+    const pathParamKeys = ['hash', 'address', 'id'];
+    for (const key of pathParamKeys) {
+      const val = (payload as any)?.[key];
+      if (val !== undefined && val !== null) {
+        pathTemplate = pathTemplate.replace(`{${key}}`, encodeURIComponent(String(val)));
+      }
+    }
     // Provide typical examples based on known actions
     const isAssociations = /addresses\/associations$/.test(pathTemplate);
     if (Array.isArray(payload?.hashes) && payload!.hashes.length) {

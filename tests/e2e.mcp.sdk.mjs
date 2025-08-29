@@ -15,6 +15,7 @@ import { testInsightsAssets } from './insights_assets.mcp.sdk.mjs';
 import { testInsightsAssetsTokens } from './insights_assets_tokens.mcp.sdk.mjs';
 import { testInsightsAssetsTokensReal } from './insights_assets_tokens_real.mcp.sdk.mjs';
 import { testInsightsEarnings } from './insights_earnings.mcp.sdk.mjs';
+import { testInsightsTransactions } from './insights_transactions.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
 import { testSchemaValidation, testSearchVerifiedContractsBugCase } from './schema_validation.mcp.sdk.mjs';
@@ -59,6 +60,9 @@ async function main() {
 
   // Test insights earnings resources
   await testInsightsEarnings(client);
+
+  // Test insights transactions
+  await testInsightsTransactions(client);
 
     // Test general resources
     await testGeneralResources(client);

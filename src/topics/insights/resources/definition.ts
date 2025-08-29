@@ -8,6 +8,49 @@ import { endpointDefinitionMap as earningsEndpoints } from './earnings/definitio
  */
 export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
   [
+    'TransactionsController-getTransactionDetails',
+    {
+      name: 'TransactionsController-getTransactionDetails',
+      description: `
+Get transaction details from the Sei gateway by hash.
+
+|||
+|---|---|
+|Eligible For|**Free Trial and Paid users**|    
+|Cost|**0 Credit Units**|    
+`,
+      inputSchema: {
+        type: 'object',
+        properties: {
+          chain_id: {
+            enum: ['pacific-1', 'atlantic-2', 'arctic-1'],
+            type: 'string',
+            description: 'Chain ID to select the gateway host',
+          },
+          endpoint: {
+            type: 'string',
+            description:
+              'Optional base URL override e.g. https://pacific-1-gateway.seitrace.com. If provided, chain_id is ignored.',
+          },
+          hash: { type: 'string', description: 'Transaction hash (0x...)', minLength: 10 },
+        },
+        required: ['hash'],
+        additionalProperties: false,
+      },
+      method: 'get',
+      pathTemplate: '/api/v1/transactions/{hash}',
+      executionParameters: [
+        { name: 'chain_id', in: 'query' },
+        { name: 'endpoint', in: 'query' },
+        { name: 'hash', in: 'path' },
+      ],
+      requestBodyContentType: undefined,
+      securityRequirements: [],
+      executor: 'gateway',
+      snippetGenerator: 'general',
+    },
+  ],
+  [
     'AddressController-getAddressDetail',
     {
       name: 'AddressController-getAddressDetail',
