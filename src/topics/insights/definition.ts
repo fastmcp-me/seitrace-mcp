@@ -21,13 +21,16 @@ export const INSIGHTS_RESOURCE_DESCRIPTION_MAP: Record<string, string> = {
 
 // Resolver wiring for insights topic
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { searchAssetsResolver, getAssetDetailsResolver, getAssetsDetailsResolver } from './resources/assets/resolver.js';
+import { searchAssetsResolver, getAssetDetailsResolver, getAssetsDetailsResolver, searchGatewayTokensResolver, searchNativeTokensResolver, searchIcs20TokensResolver } from './resources/assets/resolver.js';
 import { searchEarningsResolver, getEarningDetailsResolver } from './resources/earnings/resolver.js';
 
 export const RESOLVER_MAP: Record<string, (result: CallToolResult, payload?: any) => CallToolResult> = {
   ['searchAssets']: searchAssetsResolver,
   ['getAssetDetails']: getAssetDetailsResolver,
   ['getAssetsDetails']: getAssetsDetailsResolver,
+  ['searchGatewayTokens']: searchGatewayTokensResolver,
+  ['searchNativeTokens']: searchNativeTokensResolver,
+  ['searchIcs20Tokens']: searchIcs20TokensResolver,
   ['searchEarnings']: searchEarningsResolver,
   ['getEarningDetails']: getEarningDetailsResolver,
 };

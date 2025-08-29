@@ -101,9 +101,25 @@ export const testInsightsAssetsTokens = async (client) => {
     } catch {
       throw new Error(`insights_assets.${action} did not return JSON`);
     }
-    // Accept array or object; these gateway endpoints may return lists
-    if (parsed === null || (typeof parsed !== 'object' && !Array.isArray(parsed))) {
-      throw new Error(`insights_assets.${action} returned unexpected shape`);
+    // Expect normalized shape: { items: [...] } with at most 10 entries and minimal fields
+    if (!parsed || !Array.isArray(parsed.items)) {
+      throw new Error(`insights_assets.${action} missing items array`);
+    }
+    if (parsed.items.length > 10) {
+      throw new Error(`insights_assets.${action} items should be trimmed to 10 or fewer`);
+    }
+    // Check minimal fields presence (optional values allowed but keys should exist when present)
+    for (const it of parsed.items) {
+      if (it && typeof it === 'object') {
+        const keys = Object.keys(it);
+        const allowed = ['address', 'name', 'symbol', 'type'];
+        // ensure no unexpected keys
+        for (const k of keys) {
+          if (!allowed.includes(k)) {
+            throw new Error(`insights_assets.${action} returned unexpected field: ${k}`);
+          }
+        }
+      }
     }
   };
 

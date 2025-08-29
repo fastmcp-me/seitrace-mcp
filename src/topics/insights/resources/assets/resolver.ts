@@ -112,3 +112,46 @@ export function getAssetDetailsResolver(result: CallToolResult, payload?: any): 
 
 // Alias with pluralized name used in definition
 export const getAssetsDetailsResolver = getAssetDetailsResolver;
+
+/** Utility to extract text from CallToolResult */
+function _text(result: CallToolResult): string {
+  return (result.content && (result.content[0] as any)?.text) || '';
+}
+
+/** Normalize a gateway search response to the latest 10 with minimal fields */
+function normalizeGatewaySearch(text: string): { items: Array<{ address?: string; name?: string; symbol?: string; type?: string }> } | { error: string } {
+  try {
+    const parsed = JSON.parse(text);
+    const items = Array.isArray(parsed?.items) ? parsed.items : Array.isArray(parsed) ? parsed : [];
+    const simplified = items.slice(0, 10).map((it: any) => ({
+      address: typeof it?.address === 'string' ? it.address : undefined,
+      name: typeof it?.name === 'string' ? it.name : undefined,
+      symbol: typeof it?.symbol === 'string' ? it.symbol : undefined,
+      type: typeof it?.type === 'string' ? it.type : undefined,
+    }));
+    return { items: simplified };
+  } catch (e: any) {
+    return { error: `Failed to parse gateway search: ${e?.message || 'Unknown error'}` };
+  }
+}
+
+export function searchGatewayTokensResolver(result: CallToolResult): CallToolResult {
+  const text = _text(result);
+  const out = normalizeGatewaySearch(text);
+  if ('error' in out) return McpResponse(JSON.stringify(out));
+  return McpResponse(JSON.stringify(out));
+}
+
+export function searchNativeTokensResolver(result: CallToolResult): CallToolResult {
+  const text = _text(result);
+  const out = normalizeGatewaySearch(text);
+  if ('error' in out) return McpResponse(JSON.stringify(out));
+  return McpResponse(JSON.stringify(out));
+}
+
+export function searchIcs20TokensResolver(result: CallToolResult): CallToolResult {
+  const text = _text(result);
+  const out = normalizeGatewaySearch(text);
+  if ('error' in out) return McpResponse(JSON.stringify(out));
+  return McpResponse(JSON.stringify(out));
+}
