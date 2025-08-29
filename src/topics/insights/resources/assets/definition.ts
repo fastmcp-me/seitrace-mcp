@@ -40,7 +40,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
             maximum: 50,
           },
         },
-  required: ['query'],
+        required: ['query'],
         additionalProperties: false,
       },
       method: 'get',
@@ -81,15 +81,15 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
           type: {
             type: 'string',
             description:
-              "Token type filter: one of 'CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155', 'FACTORY'",
-            enum: ['CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155', 'FACTORY'],
+              "Token type filter: one of 'CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155'",
+            enum: ['CW-20', 'CW-721', 'ERC-20', 'ERC-721', 'ERC-1155'],
           },
-          search: {
+          q: {
             type: 'string',
             description: 'Free-text search over name, symbol, and address where applicable.',
           },
         },
-        required: ['search'],
+        required: ['q', 'type'],
         additionalProperties: false,
       },
       method: 'get',
@@ -99,21 +99,20 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
         { name: 'chain_id', in: 'query' },
         { name: 'endpoint', in: 'query' },
         { name: 'type', in: 'query' },
-        { name: 'search', in: 'query' },
+        { name: 'q', in: 'query' },
       ],
       requestBodyContentType: undefined,
       securityRequirements: [],
-  executor: 'gateway',
-  resolver: 'searchGatewayTokens',
-  snippetGenerator: 'general',
+      executor: 'gateway',
+      resolver: 'searchGatewayTokens',
+      snippetGenerator: 'general',
     },
   ],
   [
     'AssetsController-searchNativeTokens',
     {
       name: 'AssetsController-searchNativeTokens',
-      description:
-        'Search native tokens (bank module) by name/symbol/denom on the gateway.',
+      description: 'Search native tokens (bank module) by name/symbol/denom on the gateway.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -143,9 +142,9 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       ],
       requestBodyContentType: undefined,
       securityRequirements: [],
-  executor: 'gateway',
-  resolver: 'searchNativeTokens',
-  snippetGenerator: 'general',
+      executor: 'gateway',
+      resolver: 'searchNativeTokens',
+      snippetGenerator: 'general',
     },
   ],
   [
@@ -182,9 +181,9 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       ],
       requestBodyContentType: undefined,
       securityRequirements: [],
-  executor: 'gateway',
-  resolver: 'searchIcs20Tokens',
-  snippetGenerator: 'general',
+      executor: 'gateway',
+      resolver: 'searchIcs20Tokens',
+      snippetGenerator: 'general',
     },
   ],
   [

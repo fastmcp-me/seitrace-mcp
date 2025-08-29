@@ -120,7 +120,14 @@ export function generateGeneralFromDefinition(
   definition: { pathTemplate?: string; executor?: string },
   _actionName: string,
   language: (typeof SUPPORTED_GENERAL_SNIPPET_LANGUAGES)[number],
-  payload?: { chain_id?: string; endpoint?: string; hashes?: string[]; query?: string; identifier?: string; [k: string]: any }
+  payload?: {
+    chain_id?: string;
+    endpoint?: string;
+    hashes?: string[];
+    query?: string;
+    identifier?: string;
+    [k: string]: any;
+  }
 ): string {
   const pathTemplate = String(definition.pathTemplate || '/');
   const isAbsolute = /^(https?:)?\/\//i.test(pathTemplate);
@@ -142,11 +149,12 @@ export function generateGeneralFromDefinition(
         '0x93F7989b63DCe31558EB6Eaf1005b5BA18E19b18',
       ];
     }
-  if (typeof payload?.query === 'string') queryParams['query'] = payload!.query;
-  if (typeof payload?.identifier === 'string') queryParams['identifier'] = payload!.identifier;
-  // Support token/native/ics20 search params
-  if (typeof payload?.search === 'string') queryParams['search'] = payload!.search;
-  if (typeof payload?.type === 'string') queryParams['type'] = payload!.type;
+    if (typeof payload?.query === 'string') queryParams['query'] = payload!.query;
+    if (typeof payload?.identifier === 'string') queryParams['identifier'] = payload!.identifier;
+    // Support token/native/ics20 search params
+    if (typeof payload?.search === 'string') queryParams['search'] = payload!.search;
+    if (typeof payload?.q === 'string') queryParams['q'] = payload!.q;
+    if (typeof payload?.type === 'string') queryParams['type'] = payload!.type;
 
     const snippet = generateGeneralSnippet(
       {

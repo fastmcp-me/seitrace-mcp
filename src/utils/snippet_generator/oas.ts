@@ -28,33 +28,42 @@ export const generateSnippet = (path: string, language: string, specs: string) =
 
   const formData = {
     // Construct examples data
-    query: operation.getParameters().reduce((accum, param) => {
-      if (param.in === 'query') {
-        accum[param.name] = param.example;
-      }
-      return accum;
-    }, {} as Record<string, any>),
+    query: operation.getParameters().reduce(
+      (accum, param) => {
+        if (param.in === 'query') {
+          accum[param.name] = param.example;
+        }
+        return accum;
+      },
+      {} as Record<string, any>
+    ),
 
     // Construct examples data
     header: {
-      ...operation.getHeaders().request.reduce((accum, header) => {
-        if (header.toLowerCase() === 'accept' || header.toLowerCase() === 'content-type') {
-          accum[header] = 'application/json';
-        } else {
-          accum[header] = Math.random().toString(36).substring(2, 15);
-        } // Example value
-        return accum;
-      }, {} as Record<string, any>),
+      ...operation.getHeaders().request.reduce(
+        (accum, header) => {
+          if (header.toLowerCase() === 'accept' || header.toLowerCase() === 'content-type') {
+            accum[header] = 'application/json';
+          } else {
+            accum[header] = Math.random().toString(36).substring(2, 15);
+          } // Example value
+          return accum;
+        },
+        {} as Record<string, any>
+      ),
       // Should additionally include content-type header
       'content-type': 'application/json',
     },
   };
 
   // Prepare security headers
-  const auth = Object.keys(operation.schema.security?.[0] || {}).reduce((accum, key) => {
-    accum[key] = '<should-insert-seitrace-api-key-here>';
-    return accum;
-  }, {} as Record<string, any>);
+  const auth = Object.keys(operation.schema.security?.[0] || {}).reduce(
+    (accum, key) => {
+      accum[key] = '<should-insert-seitrace-api-key-here>';
+      return accum;
+    },
+    {} as Record<string, any>
+  );
 
   // Return the generated code snippet
   const { code } = oasToSnippet(apiDefinition, operation, formData, auth, language as Language);

@@ -12,6 +12,7 @@ Welcome to the Seitrace Insights MCP server codebase. This guide explains the ar
 - Validation: JSON Schema -> Zod runtime validation
 
 Key domains:
+
 - Handlers (`src/handlers/`): MCP tool request handlers. They delegate to "topics" based on the resource name.
 - Topics (`src/topics/`): Feature areas grouped under a topic key (e.g., `insights`). Each topic implements the `ITopic` interface and exposes resource/action maps.
 - Utils/Auth (`src/utils.ts`, `src/auth.ts`): Helpers for schema conversion, snippet generation, security, and response formatting.
@@ -20,6 +21,7 @@ Key domains:
 ## Tools exposed to MCP clients 🧰
 
 Exactly five tools are advertised (see `src/handlers/tools_list.ts`):
+
 - `list_resources` — list available resources across all topics.
 - `list_resource_actions` — list actions for a resource.
 - `list_resource_action_schema` — get the JSON Schema for a specific action.
@@ -44,6 +46,7 @@ Contract: implement `ITopic` (see `src/topics/base.ts`). Required shape:
 - `invokeResourceAction(toolArgs)` — validates `payload` against the action schema and executes the HTTP call.
 
 Utilities provided by `src/topics/base.ts`:
+
 - `findResource(resources, resourceName)` — throws with a helpful message if missing.
 - `findAction(resources, resourceName, actionName)` — throws if the action is missing.
 
@@ -74,14 +77,16 @@ export const TOPIC_KEY_MAP: Record<string, ITopic> = {
 ```
 
 Routing behavior in handlers:
+
 - `list_resources` flattens all keys from every topic via `AVAILABLE_TOPICS`.
 - Other tools derive `topicKey` from the resource, e.g. `const topicKey = resource.split('_')[0];` and look up `TOPIC_KEY_MAP[topicKey]`.
 
 When adding a new topic:
-1) Create `src/topics/<your_topic>/index.ts` that implements `ITopic`.
-2) Choose a unique `TOPIC_KEY` (lowercase, no spaces) and prefix all resource names with it when building your resource map.
-3) Add the instance to both `AVAILABLE_TOPICS` and `TOPIC_KEY_MAP` in `src/topics/index.ts`.
-4) Ensure resource names and actions are predictable and documented in your topic.
+
+1. Create `src/topics/<your_topic>/index.ts` that implements `ITopic`.
+2. Choose a unique `TOPIC_KEY` (lowercase, no spaces) and prefix all resource names with it when building your resource map.
+3. Add the instance to both `AVAILABLE_TOPICS` and `TOPIC_KEY_MAP` in `src/topics/index.ts`.
+4. Ensure resource names and actions are predictable and documented in your topic.
 
 ## Adding resources/actions to a topic ➕
 

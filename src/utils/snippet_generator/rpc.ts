@@ -46,6 +46,7 @@ export function generateRpcSnippet(
   const hint = `pacific-1: ${pacificUrl || 'N/A'} | atlantic-2: ${atlanticUrl || 'N/A'} | arctic-1: ${
     arcticUrl || 'N/A'
   }`;
-  const prefix = language === 'node' ? `// RPC endpoints — ${hint}\n` : `# RPC endpoints — ${hint}\n`;
+  const prefix =
+    language === 'node' ? `// RPC endpoints — ${hint}\n` : `# RPC endpoints — ${hint}\n`;
   return prefix + snippet;
 }

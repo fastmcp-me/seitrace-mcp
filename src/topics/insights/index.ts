@@ -189,7 +189,10 @@ s   */
    * @param overrideApiKey Optional API key to override the default
    * @returns The result of the tool execution
    */
-  public async invokeResourceAction(toolArgs: InsightsToolArgs, overrideApiKey?: string): Promise<CallToolResult> {
+  public async invokeResourceAction(
+    toolArgs: InsightsToolArgs,
+    overrideApiKey?: string
+  ): Promise<CallToolResult> {
     const { resource, action, payload } = toolArgs;
 
     return withMcpResponse<CallToolResult>(async () => {

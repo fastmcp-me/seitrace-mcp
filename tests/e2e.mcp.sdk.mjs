@@ -13,6 +13,7 @@ import { testToolList } from './tool_list.mcp.sdk.mjs';
 import { testInsightsResouces } from './insights.mcp.sdk.mjs';
 import { testInsightsAssets } from './insights_assets.mcp.sdk.mjs';
 import { testInsightsAssetsTokens } from './insights_assets_tokens.mcp.sdk.mjs';
+import { testInsightsAssetsTokensReal } from './insights_assets_tokens_real.mcp.sdk.mjs';
 import { testInsightsEarnings } from './insights_earnings.mcp.sdk.mjs';
 import { testGeneralResources } from './general.mcp.sdk.mjs';
 import { testSmartContractResources } from './smart_contract.mcp.sdk.mjs';
@@ -48,6 +49,13 @@ async function main() {
 
   // Test insights assets token/native/ics20 searches
   await testInsightsAssetsTokens(client);
+
+  // Test real gateway search for iSEI ERC-20 (may be skipped if network unavailable)
+  try {
+    await testInsightsAssetsTokensReal(client);
+  } catch (err) {
+    console.warn('[WARN] Real token search test failed (non-fatal):', err?.message || err);
+  }
 
   // Test insights earnings resources
   await testInsightsEarnings(client);

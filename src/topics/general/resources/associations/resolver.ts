@@ -48,7 +48,7 @@ export function associationsResolver(result: CallToolResult): CallToolResult {
   if (parsed.error) {
     return result;
   }
-  
+
   const arr = Array.isArray(parsed) ? parsed : [];
 
   /**

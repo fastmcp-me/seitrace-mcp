@@ -39,14 +39,14 @@ export const executeGatewayTool = async (
           .join(', ')}`;
         return McpResponse(
           JSON.stringify({
-            error: validationErrorMessage
+            error: validationErrorMessage,
           })
         );
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return McpResponse(
           JSON.stringify({
-            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`,
           })
         );
       }
@@ -59,7 +59,8 @@ export const executeGatewayTool = async (
     if (!baseUrl) {
       return McpResponse(
         JSON.stringify({
-          error: "Missing 'endpoint' or 'chain_id'. Provide a gateway endpoint or one of: pacific-1, atlantic-2, arctic-1."
+          error:
+            "Missing 'endpoint' or 'chain_id'. Provide a gateway endpoint or one of: pacific-1, atlantic-2, arctic-1.",
         })
       );
     }

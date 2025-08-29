@@ -39,9 +39,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
       method: 'get',
       // absolute URL so executor will not prepend baseUrl
       pathTemplate: EARNINGS_ENDPOINT,
-      executionParameters: [
-        { name: 'search_terms', in: 'query' },
-      ],
+      executionParameters: [{ name: 'search_terms', in: 'query' }],
       requestBodyContentType: undefined,
       securityRequirements: [],
       executor: 'api',

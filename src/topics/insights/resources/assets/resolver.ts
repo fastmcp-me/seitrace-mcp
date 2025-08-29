@@ -39,14 +39,19 @@ export function searchAssetsResolver(result: CallToolResult, payload?: any): Cal
     const assets: Asset[] = Array.isArray(parsed) ? parsed : parsed?.items || [];
     if (!Array.isArray(assets)) {
       return McpResponse(
-        JSON.stringify({ error: 'Expected array of assets', available_fields: Object.keys(parsed || {}) })
+        JSON.stringify({
+          error: 'Expected array of assets',
+          available_fields: Object.keys(parsed || {}),
+        })
       );
     }
 
-  // Use provided payload for query and limit
-  const q = String((payload && payload.query) || '').trim().toLowerCase();
-  const limitRaw = Number((payload && payload.limit) || 10);
-  const limit = isFinite(limitRaw) ? Math.max(1, Math.min(50, limitRaw)) : 10;
+    // Use provided payload for query and limit
+    const q = String((payload && payload.query) || '')
+      .trim()
+      .toLowerCase();
+    const limitRaw = Number((payload && payload.limit) || 10);
+    const limit = isFinite(limitRaw) ? Math.max(1, Math.min(50, limitRaw)) : 10;
 
     // If we don't have query, try to guess from a conventional field injected by tests in future.
     // Given lack of channel to pass args, we implement a permissive subset: return first 10 when no query available.
@@ -90,7 +95,7 @@ export function getAssetDetailsResolver(result: CallToolResult, payload?: any): 
     const parsed = JSON.parse(text);
     if (parsed?.error) return result;
 
-  const identifier = String((payload && payload.identifier) || '').toLowerCase();
+    const identifier = String((payload && payload.identifier) || '').toLowerCase();
     const assets: Asset[] = Array.isArray(parsed) ? parsed : parsed?.items || [];
     if (!identifier) {
       return McpResponse(JSON.stringify({ error: 'Identifier not provided to resolver' }));
@@ -119,7 +124,11 @@ function _text(result: CallToolResult): string {
 }
 
 /** Normalize a gateway search response to the latest 10 with minimal fields */
-function normalizeGatewaySearch(text: string): { items: Array<{ address?: string; name?: string; symbol?: string; type?: string }> } | { error: string } {
+function normalizeGatewaySearch(
+  text: string
+):
+  | { items: Array<{ address?: string; name?: string; symbol?: string; type?: string }> }
+  | { error: string } {
   try {
     const parsed = JSON.parse(text);
     const items = Array.isArray(parsed?.items) ? parsed.items : Array.isArray(parsed) ? parsed : [];

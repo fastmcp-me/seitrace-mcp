@@ -9,7 +9,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 **Five tools that form the resource-based interface (use in order 1→2→3→4):**
 
 - `list_resources` — list available resources (start here)
-- `list_resource_actions` — list actions for a resource  
+- `list_resource_actions` — list actions for a resource
 - `get_resource_action_schema` — **REQUIRED** get the JSON Schema for an action before invoking
 - `invoke_resource_action` — invoke an action with payload matching the schema
 - `get_resource_action_snippet` — (optional) generate a code snippet to perform a resource action in the specified language
@@ -55,6 +55,7 @@ https://mcp.seitrace.com/<api-key>
 ```
 
 SSE
+
 ```shell
 https://mcp.seitrace.com/sse/<api-key>
 ```
@@ -69,7 +70,7 @@ Configure your MCP client to launch the compiled server binary:
 
 - Command: `npx`
 - Args:`["-y", "@seitrace/mcp"]`
-- Env: `SECRET_APIKEY`, `API_BASE_URL` (optional) 
+- Env: `SECRET_APIKEY`, `API_BASE_URL` (optional)
 
 Once connected, the client will call `tools/list`, which returns exactly five tools representing the resource interface.
 
@@ -95,21 +96,37 @@ const resources = await client.callTool({ name: 'list_resouces', arguments: {} }
 // -> { resources: ['erc20', 'erc721', 'native', ...] }
 
 // 2) List actions for a resource
-const actions = await client.callTool({ name: 'list_resouce_actions', arguments: { resource: 'insights_erc20' } });
+const actions = await client.callTool({
+  name: 'list_resouce_actions',
+  arguments: { resource: 'insights_erc20' },
+});
 // -> { resource: 'erc20', actions: [{ name, description }, ...] }
 
 // 3) **REQUIRED** Get the JSON Schema for a specific action
 // This step is critical - parameter names in descriptions may differ from actual schema
-const schema = await client.callTool({ name: 'get_resource_action_schema', arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info' } });
+const schema = await client.callTool({
+  name: 'get_resource_action_schema',
+  arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info' },
+});
 // -> { resource: 'insights_erc20', action: 'get_erc20_token_info', schema }
 // The schema reveals exact parameter names like "q" instead of "query", "chain" instead of "chain_id", etc.
 
 // 4) Invoke the action with payload matching the schema structure
-const res = await client.callTool({ name: 'invoke_resource_action', arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', payload: { chain: 'pacific-1', contract_address: '0x...' } } });
+const res = await client.callTool({
+  name: 'invoke_resource_action',
+  arguments: {
+    resource: 'insights_erc20',
+    action: 'get_erc20_token_info',
+    payload: { chain: 'pacific-1', contract_address: '0x...' },
+  },
+});
 // res.content[0].text -> "API Response (Status: 200):\n{ ... }"
 
 // 5) Optionally, generate a code snippet for an action
-const snippet = await client.callTool({ name: 'get_resource_action_snippet', arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', language: 'node' } });
+const snippet = await client.callTool({
+  name: 'get_resource_action_snippet',
+  arguments: { resource: 'insights_erc20', action: 'get_erc20_token_info', language: 'node' },
+});
 // -> { resource, action, language, snippet }
 ```
 

@@ -16,11 +16,15 @@ async function main() {
 
   // Simple demo: list tools, then list resources
   const tools = await client.listTools();
-  console.error('SSE demo tools:', tools.tools.map((t) => t.name));
+  console.error(
+    'SSE demo tools:',
+    tools.tools.map((t) => t.name)
+  );
 
   const listRes = await client.callTool({ name: 'list_resources', arguments: {} });
   const contentAny: any = (listRes as any).content;
-  const text = typeof contentAny?.[0]?.text === 'string' ? contentAny[0].text : JSON.stringify(listRes);
+  const text =
+    typeof contentAny?.[0]?.text === 'string' ? contentAny[0].text : JSON.stringify(listRes);
   console.error('SSE demo list_resources:', text.slice(0, 200) + (text.length > 200 ? '…' : ''));
 
   await client.close();

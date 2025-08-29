@@ -58,7 +58,7 @@ export function searchContractsResolver(result: CallToolResult): CallToolResult 
     if (parsed.error) {
       return result;
     }
-    
+
     // Handle both array responses and paginated responses
     const _contracts = Array.isArray(parsed) ? parsed : parsed?.items || [];
     const contracts = _contracts.slice(0, 5);

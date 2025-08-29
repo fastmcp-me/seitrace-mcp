@@ -26,14 +26,14 @@ export const executeLcdTool = async (
           .join(', ')}`;
         return McpResponse(
           JSON.stringify({
-            error: validationErrorMessage
+            error: validationErrorMessage,
           })
         );
       } else {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return McpResponse(
           JSON.stringify({
-            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`
+            error: `Internal error during validation setup: ${errorMessage}. Try contact dev@cavies.xyz`,
           })
         );
       }
@@ -49,7 +49,8 @@ export const executeLcdTool = async (
       if (!chainId) {
         return McpResponse(
           JSON.stringify({
-            error: "Missing 'endpoint' or 'chain_id'. Provide a custom endpoint or one of: pacific-1, atlantic-2."
+            error:
+              "Missing 'endpoint' or 'chain_id'. Provide a custom endpoint or one of: pacific-1, atlantic-2.",
           })
         );
       }

@@ -15,12 +15,19 @@ async function main() {
   await client.connect(transport);
 
   const tools = await client.listTools();
-  console.error('HTTP stream demo tools:', tools.tools.map((t) => t.name));
+  console.error(
+    'HTTP stream demo tools:',
+    tools.tools.map((t) => t.name)
+  );
 
   const listRes = await client.callTool({ name: 'list_resources', arguments: {} });
   const contentAny: any = (listRes as any).content;
-  const text = typeof contentAny?.[0]?.text === 'string' ? contentAny[0].text : JSON.stringify(listRes);
-  console.error('HTTP stream demo list_resources:', text.slice(0, 200) + (text.length > 200 ? '…' : ''));
+  const text =
+    typeof contentAny?.[0]?.text === 'string' ? contentAny[0].text : JSON.stringify(listRes);
+  console.error(
+    'HTTP stream demo list_resources:',
+    text.slice(0, 200) + (text.length > 200 ? '…' : '')
+  );
 
   await client.close();
 }

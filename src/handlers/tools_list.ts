@@ -28,7 +28,8 @@ export const toolListHandler = () => {
 
   const listResourceActions: Tool = {
     name: LIST_RESOURCE_ACTIONS_TOOL,
-    description: 'List available actions for a given resource (step 2). Each action will show a brief description, but you MUST use get_resource_action_schema to see the exact parameter requirements before invoking.',
+    description:
+      'List available actions for a given resource (step 2). Each action will show a brief description, but you MUST use get_resource_action_schema to see the exact parameter requirements before invoking.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -42,7 +43,8 @@ export const toolListHandler = () => {
 
   const listResourceActionSchema: Tool = {
     name: GET_RESOURCE_ACTION_SCHEMA_TOOL,
-    description: 'Get the JSON Schema for a specific resource action (step 3 - REQUIRED before invoking). This reveals the exact parameter names, types, and requirements. Always call this before invoke_resource_action.',
+    description:
+      'Get the JSON Schema for a specific resource action (step 3 - REQUIRED before invoking). This reveals the exact parameter names, types, and requirements. Always call this before invoke_resource_action.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -57,7 +59,8 @@ export const toolListHandler = () => {
 
   const invokeResourceAction: Tool = {
     name: INVOKE_RESOURCE_ACTION_TOOL,
-    description: 'Invoke a resource action with the exact payload structure (step 4 - final step). IMPORTANT: You must first call get_resource_action_schema to determine the correct payload structure. Parameter names from action descriptions may differ from actual schema requirements.',
+    description:
+      'Invoke a resource action with the exact payload structure (step 4 - final step). IMPORTANT: You must first call get_resource_action_schema to determine the correct payload structure. Parameter names from action descriptions may differ from actual schema requirements.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -67,7 +70,8 @@ export const toolListHandler = () => {
       },
       required: ['resource', 'action', 'payload'],
       additionalProperties: false,
-      description: 'Provide resource, action, and payload object matching the schema from get_resource_action_schema.',
+      description:
+        'Provide resource, action, and payload object matching the schema from get_resource_action_schema.',
     },
   };
 
@@ -81,7 +85,12 @@ export const toolListHandler = () => {
         resource: { type: 'string' },
         action: { type: 'string' },
         language: { type: 'string' },
-        payload: { type: 'object', additionalProperties: true, description: 'Optional example payload for snippet generation (e.g., rpc_method, params, endpoint).' },
+        payload: {
+          type: 'object',
+          additionalProperties: true,
+          description:
+            'Optional example payload for snippet generation (e.g., rpc_method, params, endpoint).',
+        },
       },
       required: ['resource', 'action', 'language'],
       additionalProperties: false,
