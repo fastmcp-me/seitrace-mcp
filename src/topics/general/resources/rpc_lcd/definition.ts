@@ -86,7 +86,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
             multicall3: '0xcA11bde05977b3631167028862bE2a173976CA11',
           },
           explorer: {
-            url: 'https://seitrace.com',
+            url: 'https://testnet.seitrace.com',
             apiUrl: 'https://seitrace.com/atlantic-2/api',
             variant: 'blockscout',
           },
@@ -111,7 +111,7 @@ export const endpointDefinitionMap: Map<string, McpToolDefinition> = new Map([
             multicall3: '0x085F8E2f26F3A7573Eb31B06f1dC4e3Ea7601483',
           },
           explorer: {
-            url: 'https://seitrace.com',
+            url: 'https://devnet.seitrace.com',
             apiUrl: 'https://seitrace.com/arctic-1/api',
             variant: 'blockscout',
           },
