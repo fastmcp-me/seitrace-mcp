@@ -45,35 +45,7 @@ The essential MCP (Model Context Protocol) server for the Sei blockchain.
 
 Make sure you obtain an API Key for free [here](https://seitrace.com/insights)
 
-## Use with general AI Models (streamablehttp, sse)
-
-Make sure you are using the correct endpoints
-
-StreamableHTTP
-
-```shell
-https://mcp.seitrace.com/<api-key>
-```
-
-SSE
-
-```shell
-https://mcp.seitrace.com/sse/<api-key>
-```
-
-## Use with VSCode variants, Claude Desktop / Cursor 💻
-
-See [mcp](./mcp/)
-
-## Using with an MCP Client 🤝
-
-Configure your MCP client to launch the compiled server binary:
-
-- Command: `npx`
-- Args:`["-y", "@seitrace/mcp"]`
-- Env: `SECRET_APIKEY`, `API_BASE_URL` (optional)
-
-Once connected, the client will call `tools/list`, which returns exactly five tools representing the resource interface.
+Check [installation guide](./INSTALL.md)
 
 ## Highlights ✨
 
